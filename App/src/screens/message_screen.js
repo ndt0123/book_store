@@ -7,6 +7,8 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, Image, TouchableWithoutFeedback } from 'react-native';
 
+import {getTimeLeft, server} from '../../config';
+
 /*Header */
 class MessageHeader extends React.Component {
 

@@ -91,7 +91,6 @@ router.get('/filter', function(req, res, next) {
     }
     
     query_book += " GROUP BY B.book_id ORDER BY B.book_id DESC";
-    console.log(query_book);
 
     connect_db.con.query(query_book, function (err, result) {
         if (err) throw err;
@@ -108,11 +107,16 @@ router.get('/recommend', function(req, res, next) {
 
     // Kết quả trả về
     var result = [];
+    var err;
 
     // Query các quyển sách có tiêu đề gần giống với tìm kiếm
     var query_title = "SELECT title FROM books WHERE title LIKE '" + key + "%'";
     connect_db.con.query(query_title, function(err_title, result_title) {
-        if(err_title) throw err_title;
+        if(err_title) {
+            throw err_title;
+            err = err_title;
+            res.send(err);
+        }
 
         for(var i=0; i< result_title.length; i++) {
             result.push(result_title[i].title);
@@ -121,7 +125,11 @@ router.get('/recommend', function(req, res, next) {
         // Query các quyển sách có tác giả gần giống với tìm kiếm
         var query_author = "SELECT author FROM books WHERE author LIKE '" + key + "%'";
         connect_db.con.query(query_author, function(err_author, result_author) {
-            if(err_author) throw err_author;
+            if(err_author) {
+                throw err_author;
+                err = err_author;
+                res.send(err);
+            }
 
             for(var i=0; i< result_author.length; i++) {
                 result.push(result_author[i].author);

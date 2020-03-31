@@ -39,8 +39,6 @@ class MyTabs extends React.Component {
                             iconName = focused ? 'chat' : 'chat'
                         } else if (route.name === 'Tài khoản') {
                             iconName = focused ? 'user' : 'user'
-                        } else if (route.name === 'Thông báo') {
-                            iconName = focused ? 'bell' : 'bell'
                         }
 
                         return <Icon name={iconName} size={size} color={color} />;
@@ -55,7 +53,6 @@ class MyTabs extends React.Component {
                 <Tab.Screen name="Trang chủ" component={HomeScreen} />
                 <Tab.Screen name="Đăng bài" component={NewBookScreen} />
                 <Tab.Screen name="Chat" component={MessageScreen} />
-                <Tab.Screen name="Thông báo" component={NotificationScreen} />
                 <Tab.Screen name="Tài khoản" component={AccountScreen} />
             </Tab.Navigator>
         );

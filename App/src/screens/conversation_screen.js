@@ -7,6 +7,8 @@ import { StyleSheet, View, TextInput, Text, ScrollView, Image, Keyboard } from '
 
 import Icon from 'react-native-vector-icons/Feather';
 
+import {getTimeLeft, server} from '../../config';
+
 /*
  Component hiển thị nội dung cuộc trò chuyện
     - Các <View/> tin nhắn của người dùng có style là box_one_left_message

@@ -5,6 +5,8 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, ScrollView, TouchableWithoutFeedback } from 'react-native';
 
+import {getTimeLeft, server} from '../../config';
+
 {/* Component hiển thị thông tin của người dùng */ }
 class AccountInfo extends React.Component {
     render() {

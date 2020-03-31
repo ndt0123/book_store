@@ -5,14 +5,20 @@ import IconEntypo from 'react-native-vector-icons/Entypo';
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
 
+import {getTimeLeft, server} from '../../config.js';
+
 class Header extends React.Component {
-    state = {
-        searchingValue: '', /*Biến lưu nội dung tìm kiếm*/
+    constructor(props) {
+        super(props);
+        this.state = {
+            searching_value: ''
+        }
     }
+
     /*Sự kiện thay đổi nội dung khung tìm kiếm*/
     changeSearchingValue = (value) => {
         this.setState({
-            searchingValue: value,
+            searching_value: value,
         });
     }
 
@@ -28,7 +34,7 @@ class Header extends React.Component {
                 </TouchableWithoutFeedback>
 
                 <View style={styles.searching_box}>
-                    <TextInput style={styles.searching_input} value={this.state.searchingValue} onChangeText={this.changeSearchingValue} placeholder='Tìm kiếm'></TextInput>
+                    <TextInput style={styles.searching_input} value={this.state.searching_value} onChangeText={this.changeSearchingValue} placeholder='Tìm kiếm'></TextInput>
                     <IconFontAwesome name="search" color="#eee" size={24} style={{ padding: 2, flex: 1 }} />
                 </View>
 
@@ -215,42 +221,6 @@ class FilterOption extends React.Component {
 /*Một quyển sách */
 class Book extends React.Component {
 
-    // Lấy khoảng thời gian đã trôi qua từ lúc đăng bài (vd: 3 giờ trước)
-    get_time_left = (time_update) => { 
-
-        var time_present = new Date(); // Thời gian ở thời điểm hiện tại
-
-        var time_update = new Date(this.props.book.time_update); // Thời điểm đăng bài
-
-        var different_times = time_present.getTime() - time_update.getTime();
-
-        var different_years = parseInt(different_times / (1000 * 3600 * 24 * 365));
-
-        var different_months = parseInt(different_times / (1000 * 3600 * 24 * 30));
-
-        var different_days = parseInt(different_times / (1000 * 3600 * 24));
-
-        var different_hours = parseInt(different_times / (1000 * 3600));
-
-        var different_minutes = parseInt(different_times / (1000 * 60));
-
-        var different_seconds = parseInt(different_times / (1000));
-
-        if (different_years > 0) {
-            return different_years + ' năm trước';
-        } else if (different_months > 0) {
-            return different_months + ' tháng trước';
-        } else if (different_days > 0) {
-            return different_days + ' ngày trước';
-        } else if (different_hours > 0) {
-            return different_hours + ' giờ trước';
-        } else if (different_minutes > 0) {
-            return different_minutes + ' phút trước';
-        } else if (different_seconds > 0) {
-            return different_seconds + ' giây trước';
-        }
-    }
-
     render() {
         return (
             <TouchableWithoutFeedback onPress={this.props.onPressBooks}>
@@ -261,13 +231,13 @@ class Book extends React.Component {
                     <View style={{ flex: 7, flexDirection: 'column' }}>
                         <Text style={{ fontWeight: 'bold', flex: 3, height: 50 }} >{this.props.book.title}</Text>
                         {
-                            this.props.status == 100 ?
+                            this.props.book.status == 100 ?
                                 <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách mới (100%)</Text> :
-                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text>
+                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text> 
                         }
                         <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
                             <Text style={{ flex: 1, fontWeight: 'bold', color: '#6b6b6b' }}>{this.props.book.price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')} đ</Text>
-                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{this.get_time_left(this.props.book.time_update)}</Text>
+                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{getTimeLeft(this.props.book.time_update)}</Text>
                         </View>
                     </View>
                 </View>
@@ -296,7 +266,7 @@ class BooksSearching extends React.Component{
                                     book={note}
                                     onPressBooks={() => {
                                         books_searching.props.navigation.navigate('Book Detail', {
-                                            previousScreen: 'Searching',
+                                            previousScreen: 'Searching results',
                                             book_id: note.book_id,
                                         });
                                     }}
@@ -310,7 +280,7 @@ class BooksSearching extends React.Component{
     }
 }
 
-class SearchingScreen extends React.Component {
+class SearchingResultsScreen extends React.Component {
 
     constructor(props) {
         super(props);
@@ -321,7 +291,11 @@ class SearchingScreen extends React.Component {
     }
 
     getDataFromServer = () => {
-        return fetch(server + '/home/all-books')
+        if(typeof this.props.route.params.key != 'undefined' &&
+            typeof this.props.route.params.book_status == 'undefined' &&
+            typeof this.props.route.params.type_of_book == 'undefined' ) {
+
+            fetch(server + '/searching?key=' + this.props.route.params.key)
             .then((response) => response.json())
             .then((responseJson) => {
                 this.setState({
@@ -332,19 +306,63 @@ class SearchingScreen extends React.Component {
             .catch((error) => {
                 console.error(error);
             });
+        } else if(typeof this.props.route.params.key == 'undefined' &&
+                typeof this.props.route.params.book_status != 'undefined' &&
+                typeof this.props.route.params.type_of_book == 'undefined' ) {
+
+            var book_status = this.props.route.params.book_status;
+
+            var url_param = "";
+            for(var i=0; i<book_status.length; i++) {
+                if(i != book_status.length-1) {
+                    url_param += book_status[i] + ",";
+                } else {
+                    url_param += book_status[i]
+                }
+            }
+            fetch(server + '/searching/filter?book_status=' + url_param)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    is_loading: false,
+                    books: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });     
+        } else if(typeof this.props.route.params.key == 'undefined' &&
+                typeof this.props.route.params.book_status == 'undefined' &&
+                typeof this.props.route.params.type_of_book != 'undefined' ) {
+            var type_of_book = this.props.route.params.type_of_book;
+
+            var url_param = "";
+            for(var i=0; i<type_of_book.length; i++) {
+                if(i != type_of_book.length-1) {
+                    url_param += type_of_book[i] + ",";
+                } else {
+                    url_param += type_of_book[i]
+                }
+            }
+            fetch(server + '/searching/filter?type_of_book=' + url_param)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    is_loading: false,
+                    books: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });     
+        }
     }
 
     componentDidMount() {
         this.getDataFromServer();
     }
 
-    render() {
-        console.log(this.props.route.params.book_status);
-        console.log(this.props.route.params.type_of_book);
-        if(typeof this.props.route.params.key == 'undefined') {
-            console.log('dhfjd');
-        }
-        
+    render() {        
         return (
             <View style={styles.box_screen}>
                 <Header
@@ -357,14 +375,16 @@ class SearchingScreen extends React.Component {
                 /> 
 
                 {
-                    this.state.is_loading == true ? 
+                    this.state.is_loading == true ? //Nếu chưa load xong dữ liệu thì hiển thị icon loading
                         <View style={{ flex: 1 }}>
                             <ActivityIndicator style={{ flex: 1 }} />
                         </View> :
-                        <BooksSearching 
-                            books={this.state.books} 
-                            navigation={this.props.navigation}
-                        />
+                        this.state.books.length > 0 ? //Nếu không có đầu sách phù hợp thì hiển thị thông báo
+                            <BooksSearching 
+                                books={this.state.books} 
+                                navigation={this.props.navigation}
+                            /> :
+                            <Text style={{width: '100%', color: '#6b6b6b', padding: 20, fontSize: 16, textAlign: 'center'}}>Không có sách phù hợp</Text>
                 }
                         
                 {
@@ -382,7 +402,7 @@ class SearchingScreen extends React.Component {
             );
     }
 }
-export default SearchingScreen;
+export default SearchingResultsScreen;
 
 const styles = StyleSheet.create({
     box_screen: {

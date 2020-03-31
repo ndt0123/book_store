@@ -9,6 +9,8 @@ import { TextInput, View, StyleSheet, Text, ScrollView, Picker, TouchableWithout
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+import {getTimeLeft, server} from '../../config';
+
 /* Header */
 class NewBookHeader extends React.Component {
 

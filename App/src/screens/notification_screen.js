@@ -7,16 +7,8 @@ import { StyleSheet, View, Text, ScrollView, Animated, Image, TouchableHighlight
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
 
-/* Header */
-class Header extends React.Component {
-    render() {
-        return (
-            <View style={styles.box_header}>
-                <Text style={styles.header_text}>Thông báo</Text>
-            </View>
-			);
-    }
-}
+import {getTimeLeft, server} from '../../config';
+
 
 /*
  * Một thông báo
@@ -165,7 +157,6 @@ class NotificationScreen extends React.Component {
     render() {
         return (
             <View style={styles.box_screen}>
-                <Header />
 
                 <ScrollView>
                     <View style={styles.box_notification} >

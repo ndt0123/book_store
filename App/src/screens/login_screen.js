@@ -6,6 +6,8 @@ import IconAntDesign from 'react-native-vector-icons/AntDesign';
 import Slideshow from 'react-native-slideshow';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import {getTimeLeft, server} from '../../config';
+
 class LoginScreen extends React.Component {
     render() {
         return (

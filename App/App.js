@@ -1,18 +1,18 @@
 ﻿import * as React from 'react';
-import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import MyTabs from './src/tabNavigation/bottom_tab_navigation';
 import ConversationScreen from './src/screens/conversation_screen';
 import BookDetailScreen from './src/screens/book_detail_screen';
-import SearchingScreen from './src/screens/searching_screen';
+import SearchingResultsScreen from './src/screens/searching_results_screen';
+import NotificationScreen from './src/screens/notification_screen';
 
 const Stack = createStackNavigator();
 
-global.server = 'http://192.168.43.3:3000';
+//global.server = 'http://192.168.43.3:3000';
 //global.server = 'http://172.20.10.2:3000';
+//global.server = 'http://192.168.1.11:3000';
 
 
 export default function App() {
@@ -32,6 +32,13 @@ export default function App() {
                     options={{
                         headerBackTitleVisible: false,
                         headerTitle: 'Nguyễn Duy Tâm',
+                        headerTintColor: 'white',
+                        headerStyle: {
+                            backgroundColor: '#D96704'
+                        },
+                        headerTitleStyle: {
+                            color: 'black'
+                        }
                     }}
                 />
                 <Stack.Screen
@@ -44,12 +51,28 @@ export default function App() {
                     }}
                 />
                 <Stack.Screen
-                    name='Searching'
-                    component={SearchingScreen}
+                    name='Searching results'
+                    component={SearchingResultsScreen}
                     options={{
                         headerBackTitleVisible: false,
                         headerTitle: null,
                         headerShown: false
+                    }}
+                />
+                <Stack.Screen
+                    name='Notification'
+                    component={NotificationScreen}
+                    options={{
+                        headerBackTitleVisible: false,
+                        headerTitle: "Thông báo",
+                        headerStyle: {
+                            backgroundColor: '#D96704',
+                        },
+                        headerTintColor: 'white',
+                        headerTitleStyle: {
+                            color: 'black'
+                        }
+                        
                     }}
                 />
             </Stack.Navigator>

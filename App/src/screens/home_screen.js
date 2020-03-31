@@ -2,31 +2,35 @@
  Màn hình của trang chủ khi khởi động ứng dụng
  */
 
-import React from 'react';
-import { StyleSheet, View, Text, ScrollView, ImageBackground, Image, TextInput, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, ScrollView, ImageBackground, Image, TextInput, TouchableWithoutFeedback, ActivityIndicator, Animated } from 'react-native';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 
+import {getTimeLeft, server} from '../../config';
+
 /*Header của màn hình */
 class HomeHeader extends React.Component {
-    state = {
-        searchingValue: '', /*Biến lưu nội dung tìm kiếm*/
-    }
-    /*Sự kiện thay đổi nội dung khung tìm kiếm*/
-    changeSearchingValue = (v) => {
-        var value = v.trim();
-        this.setState({
-            searchingValue: value,
-        });
-    }
 
     render() {
         return (
             <View style={styles.box_header}>
                 <View style={styles.searching_box}>
-                    <TextInput style={styles.searching_input} value={this.state.searchingValue} onChangeText={this.changeSearchingValue} placeholder='Tìm kiếm'></TextInput>
-                    <IconFontAwesome name="search" color="#eee" size={24} style={{ padding: 2, flex: 1 }} />
+                    <TouchableWithoutFeedback 
+                        onPress = {() => {
+                            this.props.navigation.navigate('Notification');
+                        }}
+                    >
+                        <View style={styles.menu_option_btn}>
+                            <IconFontAwesome name="bell" color="#eee" size={24} />
+                        </View>
+                    </TouchableWithoutFeedback>
+                    <TouchableWithoutFeedback onPress={this.props.pressSearchingBtn} >
+                        <View style={styles.menu_option_btn}>
+                            <IconFontAwesome name="search" color="#eee" size={24} />
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
             </View>
         );
@@ -35,42 +39,6 @@ class HomeHeader extends React.Component {
 
 /*Một quyển sách */
 class Book extends React.Component {
-
-    // Lấy khoảng thời gian đã trôi qua từ lúc đăng bài (vd: 3 giờ trước)
-    get_time_left = (time_update) => { 
-
-        var time_present = new Date(); // Thời gian ở thời điểm hiện tại
-
-        var time_update = new Date(this.props.book.time_update); // Thời điểm đăng bài
-
-        var different_times = time_present.getTime() - time_update.getTime();
-
-        var different_years = parseInt(different_times / (1000 * 3600 * 24 * 365));
-
-        var different_months = parseInt(different_times / (1000 * 3600 * 24 * 30));
-
-        var different_days = parseInt(different_times / (1000 * 3600 * 24));
-
-        var different_hours = parseInt(different_times / (1000 * 3600));
-
-        var different_minutes = parseInt(different_times / (1000 * 60));
-
-        var different_seconds = parseInt(different_times / (1000));
-
-        if (different_years > 0) {
-            return different_years + ' năm trước';
-        } else if (different_months > 0) {
-            return different_months + ' tháng trước';
-        } else if (different_days > 0) {
-            return different_days + ' ngày trước';
-        } else if (different_hours > 0) {
-            return different_hours + ' giờ trước';
-        } else if (different_minutes > 0) {
-            return different_minutes + ' phút trước';
-        } else if (different_seconds > 0) {
-            return different_seconds + ' giây trước';
-        }
-    }
 
     render() {
         return (
@@ -82,13 +50,13 @@ class Book extends React.Component {
                     <View style={{ flex: 7, flexDirection: 'column' }}>
                         <Text style={{ fontWeight: 'bold', flex: 3, height: 50 }} >{this.props.book.title}</Text>
                         {
-                            this.props.status == 100 ?
+                            this.props.book.status == 100 ?
                                 <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách mới (100%)</Text> :
                                 <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text>
                         }
                         <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
                             <Text style={{ flex: 1, fontWeight: 'bold', color: '#6b6b6b' }}>{this.props.book.price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')} đ</Text>
-                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{this.get_time_left(this.props.book.time_update)}</Text>
+                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{getTimeLeft(this.props.book.time_update)}</Text>
                         </View>
                     </View>
                 </View>
@@ -97,10 +65,9 @@ class Book extends React.Component {
     }
 }
 
-/*Phần các tùy chọn cho bộ lọc sách
- *      -Sách cũ, sách mới
- *      -Các thể loại sách
- * */
+//Phần các tùy chọn cho bộ lọc sách
+//      -Sách cũ, sách mới
+//      -Các thể loại sách
 class BookOptionHome extends React.Component {
 
     render() {
@@ -108,7 +75,7 @@ class BookOptionHome extends React.Component {
             <View style={styles.box_option}>
                 <View style={styles.box_old_new_book}>
                     <TouchableWithoutFeedback onPress={() => {
-                        this.props.navigation.navigate('Searching', {
+                        this.props.navigation.navigate('Searching results', {
                             book_status: ['Sách cũ']
                         });
                     }}>
@@ -118,7 +85,7 @@ class BookOptionHome extends React.Component {
                     </TouchableWithoutFeedback>
 
                     <TouchableWithoutFeedback onPress={() => {
-                        this.props.navigation.navigate('Searching', {
+                        this.props.navigation.navigate('Searching results', {
                             book_status: ['Sách mới']
                         });
                     }}>
@@ -133,14 +100,14 @@ class BookOptionHome extends React.Component {
                         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{ paddingBottom: 40, paddingTop: 40 }}>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Sách trinh thám']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Sách trinh thám</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Truyện tranh']
                                     });
                                 }}>                                    
@@ -149,14 +116,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Tiểu thuyết']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Tiểu thuyết</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Sách thiếu nhi']
                                     });
                                 }}>
@@ -165,14 +132,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Kỹ năng sống']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Kỹ năng sống</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Ngôn tình']
                                     });
                                 }}>
@@ -181,14 +148,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Văn học']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Văn học</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Văn hóa xã hội']
                                     });
                                 }}>
@@ -197,14 +164,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Chính trị']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Chính trị</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Pháp luật']
                                     });
                                 }}>
@@ -213,14 +180,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Khoa học công nghệ']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Khoa học công nghệ</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Kinh tế']
                                     });
                                 }}>
@@ -229,14 +196,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Văn học nghệ thuật']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Văn học nghệ thuật</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Giáo trình']
                                     });
                                 }}>
@@ -245,14 +212,14 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Tâm lý']
                                     });
                                 }}>
                                     <Text style={styles.type_of_book_btn}>Tâm lý</Text>
                                 </TouchableWithoutFeedback>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Tôn giáo']
                                     });
                                 }}>
@@ -261,7 +228,7 @@ class BookOptionHome extends React.Component {
                             </View>
                             <View>
                                 <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching', {
+                                    this.props.navigation.navigate('Searching results', {
                                         type_of_book: ['Lịch sử']
                                     });
                                 }}>
@@ -278,6 +245,162 @@ class BookOptionHome extends React.Component {
     }
 }
 
+// Khung tìm kiếm khi click vào icon tìm kiếm trong header
+var searchingView;
+class SearchingView extends React.Component {
+
+    constructor(props) {
+        super(props);
+        searchingView = this;
+        this.state={
+            input_value: '',
+            recommend_searching: []
+        }
+    }
+
+    // Set biến lưu animation cho khung tìm kiếm
+    // Khi SearchingView hiển thị, khung tìm kiếm sẽ hiển thị dần từ phí bên phải
+    // Bằng cách set flex của khung tìm kiếm từ 0->6
+    DisplayTextInput = (props) => {
+        const [displayAnimation] = useState(new Animated.Value(0));
+
+        React.useEffect(() => {
+            Animated.timing(
+                displayAnimation,
+                {
+                    toValue: 9,
+                    duration: 600,
+                }
+            ).start();
+        }, [])
+
+        return (
+            <Animated.View 
+                style={{
+                    flex: displayAnimation,
+                    alignItems: 'flex-end',
+                }}
+            >
+                {props.children}
+            </Animated.View>
+        );
+    }
+
+    // Set biến lưu animation cho toàn bộ SearchingView
+    // Khi SearchingView hiển thị opacity sẽ chuyển từ 0->1
+    DisplaySearchingView = (props) => {
+        const [displayAnimation] = useState(new Animated.Value(0));
+
+        React.useEffect(() => {
+            Animated.timing(
+                displayAnimation,
+                {
+                    toValue: 1,
+                    duration: 600,
+                }
+            ).start();
+        }, [])
+
+        return (
+            <Animated.View 
+                style={{
+                    opacity: displayAnimation,
+                }}
+            >
+                {props.children}
+            </Animated.View>
+        );
+    }
+
+    // Hàm gọi khi thay đổi nội dung trong khung tìm kiếm
+    changeTextInput = (v) => {
+        var value = v;
+        this.setState({
+            input_value: value
+        })
+
+        if(value.trim() != "") {
+            fetch(server + '/searching/recommend?key=' + value.trim())
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    recommend_searching: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+        } else {
+            this.setState({
+                recommend_searching: []
+            })
+        }
+    }
+
+    render() {
+
+        var DisplaySearchingView = this.DisplaySearchingView;
+        var DisplayTextInput = this.DisplayTextInput;
+
+        return(
+            <DisplaySearchingView>
+                <View style={styles.box_header_searching_view}>
+                    <TouchableWithoutFeedback onPress={this.props.pressCloseSearchingOption}>
+                        <View style={{padding: 10, flex: 1}}>
+                            <Text style={{color: 'blue', textAlign: 'right'}}>Hủy</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
+                    
+                    <DisplayTextInput>
+                        <View style={{backgroundColor: '#CCCCCC', borderRadius: 20, padding: 10, width: '100%', flexDirection: 'row'}}>
+                            <TextInput 
+                                placeholder="Tìm kiếm" 
+                                autoFocus={true}
+                                value={this.state.input_value}
+                                style={{ flex: 1}}
+                                onChangeText={this.changeTextInput}
+                                onKeyPress={(e) => console.log(e.nativeEvent)}
+                            ></TextInput>
+
+                            <TouchableWithoutFeedback onPress={() => {
+                                if(this.state.input_value.trim() != '') {
+                                    console.log(this.state.input_value.trim())
+                                    this.props.navigation.navigate("Searching results", {
+                                        key: this.state.input_value.trim()
+                                    })
+                                }
+                            }}>
+                                <Text style={{fontWeight: '500', width: 61}}>Tìm kiếm</Text>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </DisplayTextInput>                        
+                </View>
+
+                <View style={{paddingLeft: 20, paddingRight: 20, flexDirection: 'column'}}>
+                    {
+                        this.state.recommend_searching.map(function(note, index) {
+                            return(
+                                <TouchableWithoutFeedback 
+                                    key={index} 
+                                    onPress={() => {
+                                        searchingView.props.navigation.navigate("Searching results", {
+                                            key: note
+                                        })
+                                    }}    
+                                >
+                                    <View style={{borderBottomColor: '#dadada', borderBottomWidth: 1, paddingTop: 10, paddingBottom: 10}}>
+                                        <Text style={{fontWeight: '500' }}>{note}</Text>
+                                    </View>
+                                </TouchableWithoutFeedback>
+                            );
+                        })
+                    }
+                </View>
+            </DisplaySearchingView>
+        );
+    }
+}
+
 /*Màn hình trang chủ */
 var home_screen;
 class HomeScreen extends React.Component {
@@ -287,6 +410,7 @@ class HomeScreen extends React.Component {
         home_screen = this;
         this.state = {
             isLoading: true,
+            display_searching_view: false
         }
     }
 
@@ -311,10 +435,31 @@ class HomeScreen extends React.Component {
                     <ActivityIndicator style={{ flex: 1 }} />
                 </View>
             )
+        } 
+
+        if(this.state.display_searching_view) {
+            return(
+                <SearchingView 
+                    pressCloseSearchingOption={() => {
+                        this.setState({
+                            display_searching_view: false
+                        })
+                    }}
+                    navigation={this.props.navigation} 
+                />
+            );
         }
-        return (
+
+        return(
             <View style={styles.box_screen}>
-                <HomeHeader />
+                <HomeHeader 
+                    navigation={this.props.navigation} 
+                    pressSearchingBtn={() => {
+                        this.setState({
+                            display_searching_view: true
+                        })
+                    }} 
+                />
 
                 <ScrollView style={styles.box_scrollView}>
                     <BookOptionHome navigation={this.props.navigation} />
@@ -429,26 +574,28 @@ const styles = StyleSheet.create({
     /*Style cho phần header*/
     box_header: {
         paddingTop: 30,
-        paddingBottom: 7,
-        paddingLeft: 30,
-        paddingRight: 30,
         backgroundColor: '#D96704',
         flexDirection: 'row',
     },
     searching_box: {
-        padding: 1,
-        paddingLeft: 10,
-        paddingRight: 10,
-        borderRadius: 20,
-        borderColor: 'white',
-        borderWidth: 1,
-        color: 'white',
-        height: 35,
-        flexDirection: 'row',
-        width: '100%'
+        paddingBottom: 10,
+        flexDirection: 'row-reverse',
+        width: '100%',
+
     },
-    searching_input: {
-        flex: 10
+    menu_option_btn: {
+        borderRadius: 100,
+        marginLeft: 10,
+        marginRight: 10,
+        alignItems: 'center'
+    },
+    box_header_searching_view: {
+        flexDirection: 'row-reverse', 
+        padding: 20, 
+        paddingTop: 30,
+        paddingBottom: 10,
+        borderBottomColor: '#dadada',
+        borderBottomWidth: 1
     }
 
 });

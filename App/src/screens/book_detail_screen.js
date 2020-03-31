@@ -6,6 +6,8 @@ import IconAntDesign from 'react-native-vector-icons/AntDesign';
 import Slideshow from 'react-native-slideshow';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import {getTimeLeft, server} from '../../config';
+
 // Header
 class Header extends React.Component {
     render() {
@@ -44,42 +46,6 @@ class ImageSlideShow extends React.Component {
 // Thông tin của sách (Tên, giá, trạng thái,...)
 class BookInfo extends React.Component {
 
-    // Lấy khoảng thời gian đã trôi qua từ lúc đăng bài (vd: 3 giờ trước)
-    get_time_left = (time_update) => { 
-
-        var time_present = new Date(); // Thời gian ở thời điểm hiện tại
-
-        var time_update = new Date(this.props.details[0].time_update); // Thời điểm đăng bài
-
-        var different_times = time_present.getTime() - time_update.getTime();
-
-        var different_years = parseInt(different_times / (1000 * 3600 * 24 * 365));
-
-        var different_months = parseInt(different_times / (1000 * 3600 * 24 * 30));
-
-        var different_days = parseInt(different_times / (1000 * 3600 * 24));
-
-        var different_hours = parseInt(different_times / (1000 * 3600));
-
-        var different_minutes = parseInt(different_times / (1000 * 60));
-
-        var different_seconds = parseInt(different_times / (1000));
-
-        if (different_years > 0) {
-            return different_years + ' năm trước';
-        } else if (different_months > 0) {
-            return different_months + ' tháng trước';
-        } else if (different_days > 0) {
-            return different_days + ' ngày trước';
-        } else if(different_minutes > 0) {
-            return different_minutes + ' phút trước';
-        } else if (different_hours > 0) {
-            return different_hours + ' giờ trước';
-        } else if (different_seconds > 0) {
-            return different_seconds + ' giây trước';
-        }
-    }
-
     render() {
         return (
             <View style={{ padding: 10, marginTop: 10 }}>
@@ -101,6 +67,15 @@ class BookInfo extends React.Component {
                                 <Text>{this.props.details[0].type_of_book}</Text>
                             </View>
 
+                            {
+                                this.props.details[0].author != "" ?
+                                <View style={[styles.box_info]}>
+                                    <IconAntDesign name='user' color='#D96704' size={10} style={[styles.info_icon_style]} />
+                                    <Text>{this.props.details[0].author}</Text>
+                                </View> :
+                                null
+                            }
+
                             <View style={[styles.box_info]}>
                                 <IconAntDesign name='infocirlceo' color='#D96704' size={10} style={[styles.info_icon_style]} />
                                 <Text>Mới {this.props.details[0].status}%</Text>
@@ -108,7 +83,7 @@ class BookInfo extends React.Component {
 
                             <View style={[styles.box_info]}>
                                 <IconAntDesign name='clockcircleo' color='#D96704' size={10} style={[styles.info_icon_style]} />
-                                <Text style={{ color: '#6b6b6b' }}>{this.get_time_left(this.props.details[0].time_update)}</Text>
+                                <Text style={{ color: '#6b6b6b' }}>{getTimeLeft(this.props.details[0].time_update)}</Text>
                             </View>
                         </View>
 
@@ -117,7 +92,7 @@ class BookInfo extends React.Component {
                         </View>
                     </View>
 
-                    <View style={{ backgroundColor: '#e0e0e0', borderRadius: 5, padding: 10, marginTop: 10, marginBottom: 20 }}>
+                    <View style={{ backgroundColor: '#D6D6D6', borderRadius: 5, padding: 10, marginTop: 10, marginBottom: 20 }}>
                         <Text>{this.props.details[0].describle}</Text>
                     </View>
 
@@ -182,7 +157,7 @@ class OneComment extends React.Component {
                 >
                     <TextInput placeholder="Viết trả lời..." style={{ padding: 5, flex: 3 }}></TextInput>
                     <TouchableHighlight underlayColor='#dadada'>
-                        <Text style={[styles.text_comment_btn]}>Trả lời</Text>
+                        <Text style={[styles.text_comment_btn]}>Gửi</Text>
                     </TouchableHighlight>
                 </View>
 
@@ -219,36 +194,6 @@ class Comments extends React.Component {
         }
     }
 
-    /*constructor(props) {
-        super(props);
-        this.state = {
-            style_margin_bottom_of_box: {
-                marginBottom: 10
-            },
-        }
-    }
-
-    componentDidMount() {
-        Keyboard.addListener('keyboardWillShow', this._keyboardWillShow.bind(this));
-        Keyboard.addListener('keyboardWillHide', this._keyboardWillHide.bind(this));
-    }
-    *//*Sự kiện bàn phím hiển thị: set chiều cao của keyboard *//*
-    _keyboardWillShow(e) {
-        this.setState({
-            style_margin_bottom_of_box: {
-                marginBottom: 170
-            },
-        })
-    }
-    *//*Sự kiện bàn phím không hiển thị: set chiều cao của keyboard *//*
-    _keyboardWillHide(e) {
-        this.setState({
-            style_margin_bottom_of_box: {
-                marginBottom: 10
-            },
-        })
-    }*/
-
     render() {
         return (
             <View style={[{ margin: 10, paddingBottom: 10, borderBottomColor: '#cacaca', borderBottomWidth: 1 }]}>
@@ -280,7 +225,7 @@ class Comments extends React.Component {
                 >
                     <TextInput placeholder="Viết bình luận..." style={{ flex: 3, padding: 5 }}></TextInput>
                     <TouchableHighlight underlayColor='#dadada'>
-                        <Text style={[styles.text_comment_btn]}>Bình luận</Text>
+                        <Text style={[styles.text_comment_btn]}>Gửi</Text>
                     </TouchableHighlight>
                 </View>
 
@@ -292,7 +237,6 @@ class Comments extends React.Component {
 // Một quyển sách gợi ý
 class OneBookRecommend extends React.Component {
     render() {
-        console.log(this.props.book.book_id);
         return (
             <TouchableWithoutFeedback onPress={() => {
                 this.props.onPressBook(this.props.book.book_id);
@@ -450,7 +394,7 @@ const styles = StyleSheet.create({
     box_one_comment_content: {
         borderRadius: 20,
         padding: 10,
-        backgroundColor: '#e6e6e6',
+        backgroundColor: '#D6D6D6',
         marginLeft: 5 
     },
     text_comment_btn: {

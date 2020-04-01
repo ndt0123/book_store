@@ -1,12 +1,13 @@
 ﻿
 import React from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableWithoutFeedback, ScrollView, ActivityIndicator, Image, Keyboard } from 'react-native';
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
 
 import {getTimeLeft, server} from '../../config.js';
 
+// Header
 class Header extends React.Component {
     constructor(props) {
         super(props);
@@ -20,6 +21,9 @@ class Header extends React.Component {
         this.setState({
             searching_value: value,
         });
+
+        // Gọi callback function từ component cha SearchingResultScreen
+        this.props.change_searching_value(value);
     }
 
     render() {
@@ -34,8 +38,23 @@ class Header extends React.Component {
                 </TouchableWithoutFeedback>
 
                 <View style={styles.searching_box}>
-                    <TextInput style={styles.searching_input} value={this.state.searching_value} onChangeText={this.changeSearchingValue} placeholder='Tìm kiếm'></TextInput>
-                    <IconFontAwesome name="search" color="#eee" size={24} style={{ padding: 2, flex: 1 }} />
+                    <TextInput 
+                        style={styles.searching_input} 
+                        value={this.state.searching_value} 
+                        onChangeText={this.changeSearchingValue}
+                        onBlur={this.props.blur_on_searching_input}
+                        placeholder='Tìm kiếm'
+                        ></TextInput>
+                    <TouchableWithoutFeedback>
+                        <IconFontAwesome name="search" color="#eee" size={24} 
+                            style={{ padding: 2, flex: 1 }} 
+                            onPress={() => {
+                                if(this.state.searching_value.trim() != '') {
+                                    this.props.get_searching_result(this.state.searching_value.trim());
+                                }
+                            }}    
+                        />
+                    </TouchableWithoutFeedback>
                 </View>
 
                 <TouchableWithoutFeedback onPress={this.props.press_filter_btn}>
@@ -44,10 +63,43 @@ class Header extends React.Component {
                     </View>
                 </TouchableWithoutFeedback>
             </View>
+            
         );
     }
 }
 
+//Gợi ý tìm kiếm
+var searchingRecommend;
+class SearchingRecommend extends React.Component {
+    constructor(props) {
+        super(props);
+        searchingRecommend = this;
+    }
+    render() {
+        return(
+            <View style={{ paddingLeft: 10, paddingRight: 10}}>
+                {
+                        this.props.recommend_searching.map(function(note, index) {
+                            return(
+                                <TouchableWithoutFeedback 
+                                    key={index} 
+                                    onPress={() => {
+                                        searchingRecommend.props.get_searching_result(note);
+                                    }}    
+                                >
+                                    <View style={{borderBottomColor: '#dadada', borderBottomWidth: 1, paddingTop: 10, paddingBottom: 10}}>
+                                        <Text style={{fontWeight: '500' }}>{note}</Text>
+                                    </View>
+                                </TouchableWithoutFeedback>
+                            );
+                        })
+                    }
+            </View>
+        );
+    }
+}
+
+// Tùy chọn lọc
 class FilterOption extends React.Component {
     render() {
         return (
@@ -246,6 +298,7 @@ class Book extends React.Component {
     }
 }
 
+// Danh sách kết quả tìm kiếm
 var books_searching;
 class BooksSearching extends React.Component{
 
@@ -287,9 +340,12 @@ class SearchingResultsScreen extends React.Component {
         this.state = {
             display_filter_option: false,
             is_loading: true,
+            display_searching_recommend: false,
+            recommend_searching: [],
         }
     }
 
+    // Lấy dữ liệu từ API khi hiển thị trang
     getDataFromServer = () => {
         if(typeof this.props.route.params.key != 'undefined' &&
             typeof this.props.route.params.book_status == 'undefined' &&
@@ -358,6 +414,39 @@ class SearchingResultsScreen extends React.Component {
         }
     }
 
+    // Lấy dữ liệu về các gợi ý tìm kiếm từ server
+    getSearchingRecommedFromServer = (key) => {
+        fetch(server + '/searching/recommend?key=' + key)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    recommend_searching: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    //Lấy dữ liệu từ API khi tìm kiếm trong khung tìm kiếm
+    getResultWithKey = (key) => {        
+        fetch(server + '/searching?key=' + key)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    books: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+
+        this.setState({
+            display_searching_recommend: false
+        })
+        Keyboard.dismiss();
+    }
+
     componentDidMount() {
         this.getDataFromServer();
     }
@@ -367,9 +456,34 @@ class SearchingResultsScreen extends React.Component {
             <View style={styles.box_screen}>
                 <Header
                     navigation={this.props.navigation}
+                    get_searching_result={this.getResultWithKey} //Hiển thị kết quả khi tìm kiếm trong khung tìm kiếm
                     press_filter_btn={() => {
+                        // Ẩn đi bàn phím và blur khỏi khung tìm kiếm
+                        Keyboard.dismiss();
+                        //
                         this.setState({
                             display_filter_option: true
+                        })
+                    }}
+                    change_searching_value={(value) => { //Sự kiện thay đổi nội dung khung tìm kiếm để hiển thị gợi ý
+                        //Nếu value là các khoảng trắng thì không hiển thị khung gợi ý
+                        if(value.trim() == '') {
+                            this.setState({
+                                display_searching_recommend: false
+                            })
+                        } else {
+                            this.setState({
+                                display_searching_recommend: true
+                            })
+
+                            // Gọi hàm lấy dữ liệu từ server
+                            this.getSearchingRecommedFromServer(value.trim());
+                        }
+                        
+                    }}
+                    blur_on_searching_input={() => { //Nếu sự kiện blur khỏi khung tìm kiếm xảy ra thì không hiển thị gợi ý nữa
+                        this.setState({
+                            display_searching_recommend: false
                         })
                     }}
                 /> 
@@ -379,12 +493,20 @@ class SearchingResultsScreen extends React.Component {
                         <View style={{ flex: 1 }}>
                             <ActivityIndicator style={{ flex: 1 }} />
                         </View> :
-                        this.state.books.length > 0 ? //Nếu không có đầu sách phù hợp thì hiển thị thông báo
-                            <BooksSearching 
-                                books={this.state.books} 
-                                navigation={this.props.navigation}
+
+                        this.state.display_searching_recommend == true ? //Nếu focus vào khung tìm kiếm thì hiển thị danh sách gợi ý
+                            <SearchingRecommend 
+                                recommend_searching={this.state.recommend_searching}
+                                get_searching_result={this.getResultWithKey} //Hiển thị kết quả khi tìm kiếm trong khung tìm kiếm
                             /> :
-                            <Text style={{width: '100%', color: '#6b6b6b', padding: 20, fontSize: 16, textAlign: 'center'}}>Không có sách phù hợp</Text>
+
+                            this.state.books.length > 0 ? //Nếu không có đầu sách phù hợp thì hiển thị thông báo
+                                <BooksSearching 
+                                    books={this.state.books} 
+                                    navigation={this.props.navigation}
+                                /> :
+
+                                <Text style={{width: '100%', color: '#6b6b6b', padding: 20, fontSize: 16, textAlign: 'center'}}>Không có sách phù hợp</Text>
                 }
                         
                 {

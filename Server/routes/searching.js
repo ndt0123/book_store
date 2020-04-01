@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
 
     //phải xử lý bên phía người dùng nếu chỉ nhập các ký tự trống thì không tìm kiếm được
 
-    //Câu query các quyển sách có tên trùng với tìm kiếm
+    //Câu query các quyển sách có tên gần giống với tìm kiếm
     var query_book_title = "SELECT B.book_id, B.type_of_book, B.author, B.title, B.status, B.price, B.time_update, BI.image_path FROM books B INNER JOIN book_images BI ON B.book_id=BI.book_id WHERE B.selling_status='Đang bán' AND B.title LIKE '%" + key + "%' GROUP BY B.book_id ORDER BY B.book_id DESC";
     connect_db.con.query(query_book_title, function (err_title, result_title) {
         if (err_title) throw err_title;

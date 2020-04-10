@@ -5,11 +5,14 @@
 
 
 import React from 'react';
-import { TextInput, View, StyleSheet, Text, ScrollView, Picker, TouchableWithoutFeedback } from 'react-native';
+import { TextInput, View, StyleSheet, Text, ScrollView, Picker, TouchableWithoutFeedback, Image, Alert, Keyboard } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 import {getTimeLeft, server} from '../../config';
+
+var input_book_image;
 
 /* Header */
 class NewBookHeader extends React.Component {
@@ -20,125 +23,78 @@ class NewBookHeader extends React.Component {
             error_img: false,
             error_title: false,
             error_price: false,
-            error_satus: false,
+            error_status: false,
             error_phone_number: false,
             error_description: false,
             error_author: false,
             error_type_of_book: false,
-        };
+            error_position: false,
+        }
     }
 
-    // Gọi hàm khi lick vào button xong
-    onPressSubmitBtn = () => {
+    press_on_submit_btn = () => {
+        var error_img = false;
+        var error_title = false;
+        var error_price = false;
+        var error_status = false;
+        var error_phone_number = false;
+        var error_description = false;
+        var error_author = false;
+        var error_type_of_book = false;
+        var error_position = false;
 
-        console.log('\n');
-        console.log('Anh: ' + this.props.img_value);
-        console.log('Tieu de: ' + this.props.title_value);
-        console.log('Gia: ' + this.props.price_value);
-        console.log('Trang thai: ' + this.props.status_value);
-        console.log('Sdt: ' + this.props.phone_number_value);
-        console.log('Mo ta: ' + this.props.description_value);
-        console.log('Tac gia: ' + this.props.author_value);
-        console.log('Loai sach: ' + this.props.type_of_book_value);
-
-        //
-        if (this.props.img_value == '') {
-            this.setState({
-                error_img: true,
-            })
-        } else {
-            this.setState({
-                error_img: false,
-            })
+        if (this.props.img_value.length == 0) {
+            error_img = true;
         }
 
         //
-        if (this.props.title_value == '') {
-            this.setState({
-                error_title: true,
-            })
-        } else {
-            this.setState({
-                error_title: false,
-            })
+        if (this.props.title_value.trim() == '') {
+            error_title = true;
         }
 
         // 
-        if (this.props.price_value == '') {
-            this.setState({
-                error_price: true,
-            })
-        } else {
-            this.setState({
-                error_price: false,
-            })
+        if (this.props.price_value.trim() == '') {
+            error_price = true;
         }
 
         //
-        if (this.props.phone_number_value == '') {
-            this.setState({
-                error_phone_number: true,
-            })
-        } else {
-            this.setState({
-                error_phone_number: false,
-            })
+        if (this.props.phone_number_value.trim() == '') {
+            error_phone_number = true;
         }
 
         //
-        if (this.props.description_value == '') {
-            this.setState({
-                error_description: true,
-            })
-        } else {
-            this.setState({
-                error_description: false,
-            })
+        if (this.props.description_value.trim() == '') {
+            error_description = true;
         }
 
         //
-        if (this.props.status_value == '') {
-            this.setState({
-                error_satus: true,
-            })
-        } else {
-            this.setState({
-                error_satus: false,
-            })
+        if (this.props.status_value.trim() == '') {
+            error_status = true;
+        }
+
+        // Trường tác giả có thể có hoặc không
+
+        //
+        if (this.props.type_of_book_value.trim() == '') {
+            error_type_of_book = true;
         }
 
         //
-        if (this.props.author_value == '') {
-            this.setState({
-                error_author: true,
-            })
-        } else {
-            this.setState({
-                error_author: false,
-            })
-        }
-
-        //
-        if (this.props.type_of_book_value == '') {
-            this.setState({
-                error_type_of_book: true,
-            })
-        } else {
-            this.setState({
-                error_type_of_book: false,
-            })
+        if(this.props.position_value.trim() == '') {
+            error_position = true;
         }
 
         // Truyền giá trị các lỗi lên cho component cha NewBookScreen
-        this.props.get_error(
-            this.state.error_img,
-            this.state.error_title,
-            this.state.error_price,
-            this.state.error_satus,
-            this.state.error_phone_number,
-            this.state.error_description,
-            this.state.error_author,
-            this.state.error_type_of_book);
+        this.props.on_submit(
+            error_img,
+            error_title,
+            error_price,
+            error_status,
+            error_phone_number,
+            error_description,
+            error_author,
+            error_type_of_book,
+            error_position);
     }
 
     render() {
@@ -147,7 +103,7 @@ class NewBookHeader extends React.Component {
             <View style={styles.box_header}>
                 <View style={{ flex: 1 }}></View>
                 <Text style={[styles.header_text, { textAlign: 'center' }]}>Đăng bài</Text>
-                <TouchableWithoutFeedback onPress={this.onPressSubmitBtn}>
+                <TouchableWithoutFeedback onPress={this.press_on_submit_btn}>
                     <Text style={[styles.header_text, { textAlign: 'right' }]}>Xong</Text>
                 </TouchableWithoutFeedback>
             </View>
@@ -158,14 +114,124 @@ class NewBookHeader extends React.Component {
 /* Khung input hình ảnh sách */
 class InputBookImages extends React.Component {
 
+    constructor(props) {
+        super(props);
+        input_book_image = this;
+        this.state = {
+            selectedImage: []
+        }
+    }
+
+    openImagePickerAsync = async () => {
+        if(this.state.selectedImage.length < 10) {
+            let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
+    
+            if (permissionResult.granted === false) {
+                alert('Permission to access camera roll is required!');
+                return;
+            }
+        
+            let pickerResult = await ImagePicker.launchImageLibraryAsync();
+            if (pickerResult.cancelled === true) {
+                return;
+            }
+
+            // Biến phụ lưu biến state.selectedImage
+            var arr_flag = this.state.selectedImage;
+            arr_flag.push(pickerResult);
+
+            // Trả danh sách hình ảnh về cho component cha
+            this.props.get_value(arr_flag);
+
+            this.setState({
+                selectedImage: arr_flag
+            })
+        }
+    };
+
+    deleteImage = (index) => {
+        var arr_flag = this.state.selectedImage;
+        arr_flag.splice(index, 1);
+        
+        // Trả danh sách hình ảnh về cho component cha
+        this.props.get_value(arr_flag);
+
+        this.setState({
+            selectedImage: arr_flag
+        })
+    }
+
     render() {
         return (
             <View style={styles.box_option_input} >
-                <View style={[styles.box_input_text,
-                { width: 70, height: 70, padding: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f1f1' }
-                ]}>
-                    <Icon name='camera' color='#6b6b6b' size={20} />
-                    <Text style={{ color: '#6b6b6b' }}>1/10</Text>
+                <TouchableWithoutFeedback onPress={this.openImagePickerAsync}>
+                    <View style={[
+                        styles.box_input_text,
+                        { width: 70, height: 70, 
+                            padding: 0, 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            backgroundColor: '#f1f1f1' }]}>
+                        <Icon name='camera' color='#6b6b6b' size={20} />
+                        <Text style={{ color: '#6b6b6b' }}>{this.state.selectedImage.length}/10</Text>
+                    </View>
+                </TouchableWithoutFeedback>
+                <View style={{paddingTop: 5}}>
+                    {
+                        this.state.selectedImage.map(function(note, index) {
+                            if(index % 4 == 0) {
+                                return(
+                                    <View style={{flexDirection: 'row'}} key={index}>
+                                        <View style={{padding: 5, width: 80}}>
+                                            <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index)}>
+                                                <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
+                                                    <Icon name='close' size={18} color='#585858' />
+                                                </View>
+                                            </TouchableWithoutFeedback>
+                                            <Image source={{ uri: note.uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                        </View>
+                                        {
+                                            index+1 < input_book_image.state.selectedImage.length ? 
+                                            <View style={{padding: 5, width: 80}}>
+                                                <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index+1)}>
+                                                    <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
+                                                        <Icon name='close' size={18} color='#585858' />
+                                                    </View>
+                                                </TouchableWithoutFeedback>
+                                                <Image source={{ uri: input_book_image.state.selectedImage[index+1].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                            </View> :
+                                            null
+                                        }
+                                        {
+                                            index+2 < input_book_image.state.selectedImage.length ? 
+                                            <View style={{padding: 5, width: 80}}>
+                                                <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index+2)}>
+                                                    <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
+                                                        <Icon name='close' size={18} color='#585858' />
+                                                    </View>
+                                                </TouchableWithoutFeedback>
+                                                <Image source={{ uri: input_book_image.state.selectedImage[index+2].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                            </View> :
+                                            null
+                                        }
+                                        {
+                                            index+3 < input_book_image.state.selectedImage.length ? 
+                                            <View style={{padding: 5, width: 80}}>
+                                                <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index+3)}>
+                                                    <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
+                                                        <Icon name='close' size={18} color='#585858' />
+                                                    </View>
+                                                </TouchableWithoutFeedback>
+                                                <Image source={{ uri: input_book_image.state.selectedImage[index+3].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                            </View> :
+                                            null
+                                        }
+                                    </View>
+                                );
+                            }
+                            
+                        })
+                    }
                 </View>
                 {
                     this.props.error_input ? 
@@ -502,7 +568,7 @@ class InputBookAuthor extends React.Component {
         }
     }
 
-    onChangePhoneNumberInput = (value) => {
+    onChangeAuthorInput = (value) => {
         this.setState({
             author_input_value: value
         })
@@ -517,8 +583,45 @@ class InputBookAuthor extends React.Component {
                     <TextInput placeholder='Tác giả'
                         style={{ width: '100%' }}
                         value={this.state.author_input_value}
-                        onChangeText={this.onChangePhoneNumberInput}></TextInput>
+                        onChangeText={this.onChangeAuthorInput}></TextInput>
                 </View>
+            </View>
+        );
+    }
+}
+
+class InputPosition extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            position_input_value: ''
+        }
+    }
+
+    onChangePositionInput = (value) => {
+        this.setState({
+            position_input_value: value
+        })
+
+        this.props.get_value(value);
+    }
+    render() {
+        return(
+            <View style={styles.box_option_input} >
+                <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
+                    <TextInput placeholder='Địa điểm'
+                        style={{ width: '100%' }}
+                        value={this.state.position_input_value}
+                        onChangeText={this.onChangePositionInput}></TextInput>
+                </View>
+                {
+                    this.props.error_input ? 
+                        <View style={styles.notifycation_error_input}>
+                            <Icon name='warning' color='red' size={15} />
+                            <Text style={styles.error_input_color} > Vui lòng nhập thông tin vị trí của bạn</Text>
+                        </View> :
+                        null
+                }
             </View>
         );
     }
@@ -564,15 +667,17 @@ class NewBookScreen extends React.Component {
             error_description: false,
             error_author: false,
             error_type_of_book: false,
+            error_position: false,
 
-            img_value: '',
+            img_value: [],
             title_value: '',
             price_value: '',
             status_value: '',
             phone_number_value: '',
             description_value: '',
             author_value: '',
-            type_of_book_value: ''
+            type_of_book_value: '',
+            position_value: ''
         };
     }
 
@@ -624,19 +729,141 @@ class NewBookScreen extends React.Component {
             img_value: value,
         })
     }
-
-    // Lấy giá trị các lỗi từ component con NewBookHeader
-    get_error = (err_img, err_title, err_price, err_status, err_phone_number, err_description, err_author, err_type_of_book) => {
+    // Lấy giá trị position nhập vào từ component con
+    get_position_value = (value) => {
         this.setState({
-            error_img: err_img,
-            error_title: err_title,
-            error_price: err_price,
-            error_status: err_status,
-            error_phone_number: err_phone_number,
-            error_description: err_description,
-            error_author: err_author,
-            error_type_of_book: err_type_of_book
+            position_value: value,
         })
+    }
+
+
+    on_submit = (error_img, error_title,
+        error_price,
+        error_status,
+        error_phone_number,
+        error_description,
+        error_author,
+        error_type_of_book,
+        error_position) => {
+            Keyboard.dismiss();
+            this.setState({
+                error_img: error_img,
+                error_title: error_title,
+                error_price: error_price,
+                error_status: error_status,
+                error_phone_number: error_phone_number,
+                error_description: error_description,
+                error_author: error_author,
+                error_type_of_book: error_type_of_book,
+                error_position: error_position,
+            })
+
+            // Nếu tất cả mọi trường đều không có lỗi input thì thực hiện gửi dữ liệu lên server để xử lý
+            if(!error_img && !error_title && 
+                !error_price && !error_status && 
+                !error_phone_number && !error_description && 
+                !error_author && !error_type_of_book && 
+                !error_position) {
+
+                    // Thực hiện request json trước
+                    // sau khi thêm thành công thì lấy id
+                    // Sau đó thực hiện request file hình ảnh thêm vào db với id đã có bằng một url khác /new-book/images/id
+                    fetch(server + '/new-book/info', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            title_value: this.state.title_value,
+                            price_value: this.state.price_value,
+                            status_value: this.state.status_value,
+                            phone_number_value: this.state.phone_number_value,
+                            description_value: this.state.description_value,
+                            author_value: this.state.author_value,
+                            type_of_book_value: this.state.type_of_book_value,
+                            position_value: this.state.position_value
+                        })
+                    })
+                    .then((response) => response.json())
+                    .then((responseJson) => {
+
+                        // Nếu việc insert thêm thông tin sách vào bảng books thành công - tức là server trả về status == 'success'
+                        // thì tiến hành việc upload hình ảnh lên server và thêm đường dẫn vào bảng book_images
+                        if(responseJson.status == 'success') {
+
+                            // Id của sách vừa mới thêm vào
+                            var book_id = responseJson.book_id;
+
+                            // Thiết lập biến data có kiểu file FormData lưu file image
+                            const data = new FormData();
+                            var photos = this.state.img_value;
+                            // Set giá trị cho biến data theo form dữ liệu của file
+                            photos.forEach((photo) => {
+                                data.append('photo', {
+                                    uri: photo.uri,
+                                    type: 'image/jpeg', // or photo.type
+                                    name: 'img_' + Math.floor(Math.random() * Math.floor(999999999)) + '.jpg'
+                                });  
+                            });
+
+                            // Fetch dữ liệu lên server
+                            fetch(server + '/new-book/image/' + book_id, {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'multipart/form-data'
+                                },
+                                body: data
+                            }).then((response) => response.json())
+                            .then((response_2) => {
+                                // Hiển thị thông báo nếu thành công hoặc gặp lỗi
+                                if(response_2.status == 'success') {
+                                    Alert.alert(
+                                        'Thông báo',
+                                        'Thành công',
+                                        [
+                                          {text: 'OK', onPress: () => {
+                                              this.props.navigation.navigate('Trang chủ');
+                                            }},
+                                        ],
+                                        { cancelable: false }
+                                    )                                    
+                                } else if(response_2.status == 'error') {
+                                    // Set lại state cho trang như ban đầu
+                                    Alert.alert(
+                                        'Thông báo',
+                                        'Đã xảy ra lỗi',
+                                        [
+                                          {text: 'OK', onPress: () => {
+                                              this.props.navigation.navigate('Trang chủ');
+                                            }},
+                                        ],
+                                        { cancelable: false }
+                                    )
+                                }
+                            })
+                            .catch((error) => {
+                                console.error(error);
+                            });;
+
+                        } else if(responseJson.status == 'error') { //Nếu xảy ra lỗi khi thêm thông tin sách thì hiển thị thông báo
+                            Alert.alert(
+                                'Thông báo',
+                                'Đã xảy ra lỗi',
+                                [
+                                  {text: 'OK', onPress: () => {
+                                      this.props.navigation.navigate('Trang chủ');
+                                    }},
+                                ],
+                                { cancelable: false }
+                            )
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });;
+                }
     }
 
 
@@ -644,6 +871,8 @@ class NewBookScreen extends React.Component {
         return (
             <View style={styles.box_screen}>
                 <NewBookHeader
+                    on_submit={this.on_submit}
+
                     img_value={this.state.img_value}
                     title_value={this.state.title_value}
                     price_value={this.state.price_value}
@@ -652,8 +881,7 @@ class NewBookScreen extends React.Component {
                     description_value={this.state.description_value}
                     author_value={this.state.author_value}
                     type_of_book_value={this.state.type_of_book_value}
-
-                    get_error={this.get_error}
+                    position_value={this.state.position_value}
                 />
                 <ScrollView style={styles.box_content}>
                     <InputBookImages error_input={this.state.error_img} get_value={this.get_img_value} />
@@ -669,6 +897,8 @@ class NewBookScreen extends React.Component {
                     <InputBookAuthor error_input={this.state.error_author} get_value={this.get_author_value} />
 
                     <InputPhoneNumber error_input={this.state.error_phone_number} get_value={this.get_phone_number_value} />
+
+                    <InputPosition error_input={this.state.error_position} get_value={this.get_position_value} />
 
                     <InputBookDescription error_input={this.state.error_description} get_value={this.get_description_value} />
 

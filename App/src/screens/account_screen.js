@@ -5,7 +5,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, ScrollView, TouchableWithoutFeedback } from 'react-native';
 
-import {getTimeLeft, server} from '../../config';
+import {getTimeLeft, server, isLoggedIn} from '../../config';
 
 {/* Component hiển thị thông tin của người dùng */ }
 class AccountInfo extends React.Component {
@@ -321,6 +321,11 @@ class OwnBooks extends React.Component {
  *Component màn hình account 
  */
 class AccountScreen extends React.Component {
+
+    componentDidMount() {
+
+    }
+
     render() {
         return (
             <View style={styles.box_screen}>

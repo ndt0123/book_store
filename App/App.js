@@ -7,13 +7,9 @@ import ConversationScreen from './src/screens/conversation_screen';
 import BookDetailScreen from './src/screens/book_detail_screen';
 import SearchingResultsScreen from './src/screens/searching_results_screen';
 import NotificationScreen from './src/screens/notification_screen';
+import LogInScreen from './src/screens/login_screen';
 
 const Stack = createStackNavigator();
-
-//global.server = 'http://192.168.43.3:3000';
-//global.server = 'http://172.20.10.2:3000';
-//global.server = 'http://192.168.1.11:3000';
-
 
 export default function App() {
     return (
@@ -73,6 +69,15 @@ export default function App() {
                             color: 'black'
                         }
                         
+                    }}
+                />
+                <Stack.Screen
+                    name='Log in'
+                    component={LogInScreen}
+                    options={{
+                        headerBackTitleVisible: false,
+                        headerTitle: null,
+                        headerShown: false
                     }}
                 />
             </Stack.Navigator>

@@ -7,10 +7,16 @@ import IconAntDesign from 'react-native-vector-icons/AntDesign';
 
 import {getTimeLeft, server} from '../../config.js';
 
+var searchingRecommend;
+var header;
+var books_searching;
+var filter_option;
+
 // Header
 class Header extends React.Component {
     constructor(props) {
         super(props);
+        header = this;
         this.state = {
             searching_value: ''
         }
@@ -51,6 +57,9 @@ class Header extends React.Component {
                             onPress={() => {
                                 if(this.state.searching_value.trim() != '') {
                                     this.props.get_searching_result(this.state.searching_value.trim());
+                                    this.setState({
+                                        searching_value: '',
+                                    });
                                 }
                             }}    
                         />
@@ -69,7 +78,6 @@ class Header extends React.Component {
 }
 
 //Gợi ý tìm kiếm
-var searchingRecommend;
 class SearchingRecommend extends React.Component {
     constructor(props) {
         super(props);
@@ -77,13 +85,16 @@ class SearchingRecommend extends React.Component {
     }
     render() {
         return(
-            <View style={{ paddingLeft: 10, paddingRight: 10}}>
+            <View style={{ paddingLeft: 20, paddingRight: 20}}>
                 {
                         this.props.recommend_searching.map(function(note, index) {
                             return(
                                 <TouchableWithoutFeedback 
                                     key={index} 
                                     onPress={() => {
+                                        header.setState({
+                                            searching_value: ''
+                                        })
                                         searchingRecommend.props.get_searching_result(note);
                                     }}    
                                 >
@@ -101,6 +112,71 @@ class SearchingRecommend extends React.Component {
 
 // Tùy chọn lọc
 class FilterOption extends React.Component {
+
+    constructor(props) {
+        super(props);
+        filter_option = this;
+        this.state = {
+            book_status_filter: [],
+            type_of_book_filter: [],
+            list_type_of_book: [{type_of_book: ''}]
+        }
+    }
+
+    componentDidMount() {
+        fetch(server + '/searching/list_type_of_book')
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    list_type_of_book: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    // Nếu click vào các lựa chọn về type_of_book thì
+    // Nếu trong mảng type_of_book_filter đã có thì xóa khỏi mảng
+    // Nếu chưa có thì thêm vào
+    onPressTypeFilterBtn = (type) => {
+        var flag_type = this.state.type_of_book_filter;
+        var index = flag_type.indexOf(type);
+
+        if(index >= 0) {
+            flag_type.splice(index, 1);
+            this.setState({
+                type_of_book_filter: flag_type
+            })
+        } else {
+            flag_type.push(type);
+            this.setState({
+                type_of_book_filter: flag_type
+            })
+        }
+    }
+
+    // Nếu click vào các lựa chọn về status_book thì
+    // Nếu trong mảng book_status_filter đã có thì xóa khỏi mảng
+    // Nếu chưa có thì thêm vào
+    onPressStatusFilterBtn = (status) => {
+
+        var flag_status = this.state.book_status_filter;
+        var index = flag_status.indexOf(status);
+
+        if(index >= 0) {
+            flag_status.splice(index, 1);
+            this.setState({
+                book_status_filter: flag_status
+            })
+        } else {
+            flag_status.push(status);
+            this.setState({
+                book_status_filter: flag_status
+            })
+        }
+    }
+
     render() {
         return (
             <View style={styles.screen_filter_option}>
@@ -116,149 +192,83 @@ class FilterOption extends React.Component {
                     <View>
                         <Text style={{ fontWeight: '600', fontSize: 18, color: '#6b6b6b' }}>Thể loại sách</Text>
                         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{ paddingBottom: 20, paddingTop: 20 }}>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Sách trinh thám </Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Truyện tranh</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Tiểu thuyết</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Sách thiếu nhi</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Kỹ năng sống</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Ngôn tình</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Văn học</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Văn hóa xã hội</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Chính trị</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Pháp luật</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Khoa học công nghệ</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Kinh tế</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Văn học nghệ thuật</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Giáo trình</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Tâm lý</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Tôn giáo</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback>
-                                    <View style={styles.type_of_book_btn}>
-                                        <Text style={{ color: '#D96704' }}>Lịch sử</Text>
-                                        <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
+                            {
+                                this.state.list_type_of_book.map( function (note, index) {
+                                    if(index + 1 < filter_option.state.list_type_of_book.length && index % 2 == 0) {
+                                        return(
+                                            <View key={index}>
+                                                <TouchableWithoutFeedback onPress={() => filter_option.onPressTypeFilterBtn(filter_option.state.list_type_of_book[index].type_of_book)}>
+                                                    <View style={styles.type_of_book_btn}>
+                                                        <Text style={{ color: '#D96704' }}>{filter_option.state.list_type_of_book[index].type_of_book}</Text>
+                                                        {
+                                                            filter_option.state.type_of_book_filter.indexOf(filter_option.state.list_type_of_book[index].type_of_book) >= 0 ?
+                                                                <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} /> :
+                                                                null
+                                                        }
+                                                    </View>
+                                                </TouchableWithoutFeedback>
+                                                <TouchableWithoutFeedback onPress={() => filter_option.onPressTypeFilterBtn(filter_option.state.list_type_of_book[index+1].type_of_book)}>
+                                                    <View style={styles.type_of_book_btn}>
+                                                        <Text style={{ color: '#D96704' }}>{filter_option.state.list_type_of_book[index+1].type_of_book}</Text>
+                                                        {
+                                                            filter_option.state.type_of_book_filter.indexOf(filter_option.state.list_type_of_book[index+1].type_of_book) >= 0 ?
+                                                                <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} /> :
+                                                                null
+                                                        }
+                                                    </View>
+                                                </TouchableWithoutFeedback>
+                                            </View>
+                                        );
+                                    } else if(index + 1 >= filter_option.state.list_type_of_book.length && index % 2 == 0) {
+                                        return(
+                                            <View key={index}>
+                                                <TouchableWithoutFeedback onPress={() => filter_option.onPressTypeFilterBtn(filter_option.state.list_type_of_book[index].type_of_book)}>
+                                                    <View style={styles.type_of_book_btn}>
+                                                        <Text style={{ color: '#D96704' }}>{filter_option.state.list_type_of_book[index].type_of_book}</Text>
+                                                        {
+                                                            filter_option.state.type_of_book_filter.indexOf(filter_option.state.list_type_of_book[index].type_of_book) >= 0 ?
+                                                                <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} /> :
+                                                                null
+                                                        }
+                                                    </View>
+                                                </TouchableWithoutFeedback>
+                                            </View>
+                                        );
+                                    }
+                                })
+                            }
+                            
                         </ScrollView>
                     </View>
 
                     <View>
                         <Text style={{ fontWeight: '600', fontSize: 18, color: '#6b6b6b' }}>Tình trạng sách</Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingTop: 20}}>
-                            <TouchableWithoutFeedback>
+                            <TouchableWithoutFeedback onPress={() => this.onPressStatusFilterBtn('Sách cũ')}>
                                 <View style={styles.type_of_book_btn}>
                                     <Text style={{ color: '#D96704' }}>Sách cũ</Text>
-                                    <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
+                                    {
+                                        this.state.book_status_filter.indexOf('Sách cũ') >= 0 ?
+                                            <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} /> :
+                                            null
+                                    }
                                 </View>
                             </TouchableWithoutFeedback>
-                            <TouchableWithoutFeedback>
+                            <TouchableWithoutFeedback onPress={() => this.onPressStatusFilterBtn('Sách mới')}>
                                 <View style={styles.type_of_book_btn}>
                                     <Text style={{ color: '#D96704' }}>Sách mới</Text>
-                                    <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} />
+                                    {
+                                        this.state.book_status_filter.indexOf('Sách mới') >= 0 ?                                        
+                                            <IconEntypo name='check' color='green' size={16} style={{ paddingLeft: 3 }} /> : 
+                                            null
+                                    }
                                 </View>
                             </TouchableWithoutFeedback>
                         </View>
                     </View>
 
                     <View style={{ paddingTop: 20, paddingBottom: 20, borderTopWidth: 1, borderTopColor: '#dadada'}}>
-                        <TouchableWithoutFeedback>
+                        <TouchableWithoutFeedback onPress={() => this.props.press_on_filter_btn(this.state.type_of_book_filter, this.state.book_status_filter)}>
                             <View style={styles.submit_filter_btn}>
                                 <Text style={{ color: 'white', fontWeight: '600' }}>Lọc</Text>
                             </View>
@@ -281,15 +291,19 @@ class Book extends React.Component {
                         <Image source={{ uri: server + this.props.book.image_path }} style={styles.image} />
                     </View>
                     <View style={{ flex: 7, flexDirection: 'column' }}>
-                        <Text style={{ fontWeight: 'bold', flex: 3, height: 50 }} >{this.props.book.title}</Text>
-                        {
-                            this.props.book.status == 100 ?
-                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách mới (100%)</Text> :
-                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text> 
-                        }
+                        <Text style={{ fontWeight: 'bold', flex: 3, maxHeight: 50 }} >{this.props.book.title}</Text>
+                        
+                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
+                            {
+                                this.props.book.status == 100 ?
+                                    <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách mới (100%)</Text> :
+                                    <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text> 
+                            }
+                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{this.props.book.type_of_book}</Text>
+                        </View>
                         <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
                             <Text style={{ flex: 1, fontWeight: 'bold', color: '#6b6b6b' }}>{this.props.book.price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')} đ</Text>
-                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{getTimeLeft(this.props.book.time_update)}</Text>
+                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b', fontSize: 12 }}>{getTimeLeft(this.props.book.time_update)}</Text>
                         </View>
                     </View>
                 </View>
@@ -299,7 +313,6 @@ class Book extends React.Component {
 }
 
 // Danh sách kết quả tìm kiếm
-var books_searching;
 class BooksSearching extends React.Component{
 
     constructor(props) {
@@ -368,15 +381,7 @@ class SearchingResultsScreen extends React.Component {
 
             var book_status = this.props.route.params.book_status;
 
-            var url_param = "";
-            for(var i=0; i<book_status.length; i++) {
-                if(i != book_status.length-1) {
-                    url_param += book_status[i] + ",";
-                } else {
-                    url_param += book_status[i]
-                }
-            }
-            fetch(server + '/searching/filter?book_status=' + url_param)
+            fetch(server + '/searching/filter?book_status=' + book_status)
             .then((response) => response.json())
             .then((responseJson) => {
                 this.setState({
@@ -392,15 +397,7 @@ class SearchingResultsScreen extends React.Component {
                 typeof this.props.route.params.type_of_book != 'undefined' ) {
             var type_of_book = this.props.route.params.type_of_book;
 
-            var url_param = "";
-            for(var i=0; i<type_of_book.length; i++) {
-                if(i != type_of_book.length-1) {
-                    url_param += type_of_book[i] + ",";
-                } else {
-                    url_param += type_of_book[i]
-                }
-            }
-            fetch(server + '/searching/filter?type_of_book=' + url_param)
+            fetch(server + '/searching/filter?type_of_book=' + type_of_book)
             .then((response) => response.json())
             .then((responseJson) => {
                 this.setState({
@@ -445,6 +442,58 @@ class SearchingResultsScreen extends React.Component {
             display_searching_recommend: false
         })
         Keyboard.dismiss();
+    }
+
+    // Lấy dữ liệu khi sử dụng bộ lọc
+    getResultWithFlter = (type, status) => {
+        // Nếu có điều kiện lọc thì mới thực hiện lọc
+        // Tức type và status phải có phần tử
+        if(type.length > 0 || status.length > 0) {
+            var url_param = '/searching/filter?'; // url
+
+            if(type.length > 0) {
+                url_param += 'type_of_book=';
+                for(var i=0; i<type.length; i++) {
+                    if(i != type.length-1) {
+                        url_param += type[i] + ',';
+                    } else {
+                        url_param += type[i];
+                    }
+                }
+            }
+            if(status.length > 0) {
+                if(type.length > 0) {
+                    url_param += '&book_status=';
+                } else {
+                    url_param += 'book_status=';
+                }
+                
+                for(var i=0; i<status.length; i++) {
+                    if(i != status.length-1) {
+                        url_param += status[i] + ',';
+                    } else {
+                        url_param += status[i];
+                    }
+                }
+            }
+
+            // fetch dữ liệu trên API
+            fetch(server + url_param)
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    is_loading: false,
+                    books: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+
+            this.setState({
+                display_filter_option: false
+            })
+        }        
     }
 
     componentDidMount() {
@@ -517,6 +566,7 @@ class SearchingResultsScreen extends React.Component {
                                     display_filter_option: false
                                 });
                             }}
+                            press_on_filter_btn = {this.getResultWithFlter}
                         /> :
                         null
                 }

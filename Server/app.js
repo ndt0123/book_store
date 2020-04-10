@@ -3,10 +3,15 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var bodyParser = require("body-parser");
+//var formidableMiddleware = require('express-formidable');
 
 var allBookRouter = require('./routes/all_books');
 var bookDetailsRouter = require('./routes/book_details');
 var searching = require('./routes/searching');
+var auth = require('./routes/auth');
+var newBook = require('./routes/new_book');
 
 var app = express();
 
@@ -20,9 +25,28 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.use(session({
+  resave: true, 
+  saveUninitialized: true, 
+  secret: 'somesecret', 
+  cookie: { maxAge: 60000 }})
+);
+
+// app.use(formidableMiddleware({
+//   encoding: 'utf-8',
+//   uploadDir: './public/images/books',
+//   multiples: true, // req.files to be arrays of files
+// }));
+
 app.use('/home', allBookRouter);
 app.use('/book-details', bookDetailsRouter);
 app.use('/searching', searching);
+app.use('/auth', auth);
+app.use('/new-book', newBook);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

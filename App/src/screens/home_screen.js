@@ -10,6 +10,9 @@ import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import {getTimeLeft, server} from '../../config';
 
+var book_option_home;
+var searchingView;
+
 /*Header của màn hình */
 class HomeHeader extends React.Component {
 
@@ -69,6 +72,27 @@ class Book extends React.Component {
 //      -Sách cũ, sách mới
 //      -Các thể loại sách
 class BookOptionHome extends React.Component {
+    
+    constructor(props) {
+        super(props);
+        book_option_home = this;
+        this.state = {
+            list_type_of_book: [{type_of_book: ''}]
+        }
+    }
+
+    componentDidMount() {
+        fetch(server + '/searching/list_type_of_book')
+            .then((response) => response.json())
+            .then((responseJson) => {
+                this.setState({
+                    list_type_of_book: responseJson
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
 
     render() {
         return (
@@ -76,7 +100,7 @@ class BookOptionHome extends React.Component {
                 <View style={styles.box_old_new_book}>
                     <TouchableWithoutFeedback onPress={() => {
                         this.props.navigation.navigate('Searching results', {
-                            book_status: ['Sách cũ']
+                            book_status: 'Sách cũ'
                         });
                     }}>
                         <View style={[styles.box_old_new_book_btn, , styles.border_right]}>
@@ -86,7 +110,7 @@ class BookOptionHome extends React.Component {
 
                     <TouchableWithoutFeedback onPress={() => {
                         this.props.navigation.navigate('Searching results', {
-                            book_status: ['Sách mới']
+                            book_status: 'Sách mới'
                         });
                     }}>
                         <View style={styles.box_old_new_book_btn}>
@@ -98,143 +122,45 @@ class BookOptionHome extends React.Component {
                     <ImageBackground source={require('../../images/background_image_home_option.jpg')} style={{ width: '100%', height: '100%' }}>
 
                         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{ paddingBottom: 40, paddingTop: 40 }}>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Sách trinh thám']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Sách trinh thám</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Truyện tranh']
-                                    });
-                                }}>                                    
-                                    <Text style={styles.type_of_book_btn}>Truyện tranh</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Tiểu thuyết']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Tiểu thuyết</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Sách thiếu nhi']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Sách thiếu nhi</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Kỹ năng sống']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Kỹ năng sống</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Ngôn tình']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Ngôn tình</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Văn học']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Văn học</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Văn hóa xã hội']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Văn hóa xã hội</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Chính trị']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Chính trị</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Pháp luật']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Pháp luật</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Khoa học công nghệ']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Khoa học công nghệ</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Kinh tế']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Kinh tế</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Văn học nghệ thuật']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Văn học nghệ thuật</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Giáo trình']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Giáo trình</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Tâm lý']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Tâm lý</Text>
-                                </TouchableWithoutFeedback>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Tôn giáo']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Tôn giáo</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            <View>
-                                <TouchableWithoutFeedback onPress={() => {
-                                    this.props.navigation.navigate('Searching results', {
-                                        type_of_book: ['Lịch sử']
-                                    });
-                                }}>
-                                    <Text style={styles.type_of_book_btn}>Lịch sử</Text>
-                                </TouchableWithoutFeedback>
-                            </View>
+                        {
+                            this.state.list_type_of_book.map( function (note, index) {
+                                if(index + 1 < book_option_home.state.list_type_of_book.length && index % 2 == 0) {
+                                    return(
+                                        <View key={index}>
+                                            <TouchableWithoutFeedback onPress={() => {
+                                                var type = book_option_home.state.list_type_of_book[index].type_of_book;
+                                                book_option_home.props.navigation.navigate('Searching results', {
+                                                    type_of_book: type
+                                                });
+                                            }}>
+                                                <Text style={styles.type_of_book_btn}>{book_option_home.state.list_type_of_book[index].type_of_book}</Text>
+                                            </TouchableWithoutFeedback>
+                                            <TouchableWithoutFeedback onPress={() => {
+                                                var type = book_option_home.state.list_type_of_book[index+1].type_of_book;
+                                                book_option_home.props.navigation.navigate('Searching results', {
+                                                    type_of_book: type
+                                                });
+                                            }}>                                    
+                                                <Text style={styles.type_of_book_btn}>{book_option_home.state.list_type_of_book[index+1].type_of_book}</Text>
+                                            </TouchableWithoutFeedback>
+                                        </View>
+                                    );
+                                } else if(index + 1 >= book_option_home.state.list_type_of_book.length && index % 2 == 0) {
+                                    return(
+                                        <View key={index}>
+                                            <TouchableWithoutFeedback onPress={() => {
+                                                var type = book_option_home.state.list_type_of_book[index].type_of_book;
+                                                book_option_home.props.navigation.navigate('Searching results', {
+                                                    type_of_book: type
+                                                });
+                                            }}>
+                                                <Text style={styles.type_of_book_btn}>{book_option_home.state.list_type_of_book[index].type_of_book}</Text>
+                                            </TouchableWithoutFeedback>
+                                        </View>
+                                    );
+                                }
+                            })
+                        }
                         </ScrollView>
 
                     </ImageBackground>
@@ -246,7 +172,6 @@ class BookOptionHome extends React.Component {
 }
 
 // Khung tìm kiếm khi click vào icon tìm kiếm trong header
-var searchingView;
 class SearchingView extends React.Component {
 
     constructor(props) {
@@ -359,18 +284,17 @@ class SearchingView extends React.Component {
                                 value={this.state.input_value}
                                 style={{ flex: 1}}
                                 onChangeText={this.changeTextInput}
-                                onKeyPress={(e) => console.log(e.nativeEvent)}
                             ></TextInput>
 
                             <TouchableWithoutFeedback onPress={() => {
                                 if(this.state.input_value.trim() != '') {
-                                    console.log(this.state.input_value.trim())
                                     this.props.navigation.navigate("Searching results", {
                                         key: this.state.input_value.trim()
                                     })
                                 }
                             }}>
-                                <Text style={{fontWeight: '500', width: 61}}>Tìm kiếm</Text>
+                                
+                                <IconFontAwesome name="search" color="white" size={23} style={{ alignSelf: 'flex-end' }} />
                             </TouchableWithoutFeedback>
                         </View>
                     </DisplayTextInput>                        

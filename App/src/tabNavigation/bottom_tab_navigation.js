@@ -19,11 +19,26 @@ import NewBookScreen from '../screens/new_book_screen';
 import MessageScreen from '../screens/message_screen';
 import AccountScreen from '../screens/account_screen';
 import HomeScreen from '../screens/home_screen';
-import NotificationScreen from '../screens/notification_screen';
+import LogInScreen from '../screens/login_screen';
+
+import {getTimeLeft, server, isLoggedIn} from '../../config';
 
 const Tab = createBottomTabNavigator();
 
 class MyTabs extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state= {
+            logged_in: false
+        }
+    }
+    componentDidMount() {
+        this.setState({
+            logged_in: isLoggedIn()
+        })
+        console.log(isLoggedIn());
+    }
+
     render() {
         return (
             <Tab.Navigator
@@ -39,6 +54,8 @@ class MyTabs extends React.Component {
                             iconName = focused ? 'chat' : 'chat'
                         } else if (route.name === 'Tài khoản') {
                             iconName = focused ? 'user' : 'user'
+                        } else if (route.name === 'Đăng nhập') {
+                            iconName = focused ? 'login' : 'login'
                         }
 
                         return <Icon name={iconName} size={size} color={color} />;
@@ -51,9 +68,20 @@ class MyTabs extends React.Component {
                 }}
             >
                 <Tab.Screen name="Trang chủ" component={HomeScreen} />
-                <Tab.Screen name="Đăng bài" component={NewBookScreen} />
-                <Tab.Screen name="Chat" component={MessageScreen} />
-                <Tab.Screen name="Tài khoản" component={AccountScreen} />
+                {
+                    this.state.logged_in == false ? 
+                        (
+                            <Tab.Screen name="Đăng nhập" component={() => <LogInScreen logged_in={() => this.setState({logged_in: true})}/> }
+                                />
+                        ) :                        
+                        (
+                            <>
+                            <Tab.Screen name="Đăng bài" component={NewBookScreen} />
+                            <Tab.Screen name="Chat" component={MessageScreen} />
+                            <Tab.Screen name="Tài khoản" component={AccountScreen} />
+                            </>
+                        )
+                }
             </Tab.Navigator>
         );
     }

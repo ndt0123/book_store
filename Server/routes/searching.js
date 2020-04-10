@@ -141,4 +141,13 @@ router.get('/recommend', function(req, res, next) {
     })
 })
 
+// Lấy danh sách các thể loại sách
+router.get('/list_type_of_book', function(req, res, next) {
+    var query = 'SELECT type_of_book FROM books GROUP BY type_of_book';
+    connect_db.con.query(query, function(err, result) {
+        if(err) throw err;
+        res.send(result);
+    })
+})
+
 module.exports = router;

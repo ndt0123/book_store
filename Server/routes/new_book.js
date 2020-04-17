@@ -17,33 +17,34 @@ router.post('/image/:id', function(req, res, next) {
 
     form.parse(req, function (err, fields, files) {
 
-        console.log(files.photo);
-
         // Biến lưu đường dẫn để thêm vào csdl
         var path_image = [];
-        // for(var i=0; i<files.photo.length; i++) {
-        //     fs.rename(files.photo[i].path, files.photo[i].path + '.jpg', function (err) {
-        //         if (err) throw err;
-        //     });
 
-        //     // Do path có đường dẫn public\\images\\books\\upload_...
-        //     // Nên phải convert lại đường dẫn
-        //     var path = files.photo[i].path.replace('public', ''); // Xóa bỏ public ở đầu = cách thay thế thành ký tự ''
-        //     path = path.replace(/\\/g, '/'); // Thay thế ký tự \\ bằng ký tự /
-        //     path_image.push(path + '.jpg');
-        // }
-        files.photo.forEach((image) => {
-            fs.rename(image.path, image.path + '.jpg', function (err) {
+        if(files.photo.length) {
+            files.photo.forEach((image) => {
+                fs.rename(image.path, image.path + '.jpg', function (err) {
+                    if (err) throw err;
+                });
+    
+                // Do path có đường dẫn public\\images\\books\\upload_...
+                // Nên phải convert lại đường dẫn
+                var path = image.path.replace('public', ''); // Xóa bỏ public ở đầu = cách thay thế thành ký tự ''
+                path = path.replace(/\\/g, '/'); // Thay thế ký tự \\ bằng ký tự /
+                path_image.push(path + '.jpg');
+            })
+        } else {
+            fs.rename(files.photo.path, files.photo.path + '.jpg', function (err) {
                 if (err) throw err;
             });
 
             // Do path có đường dẫn public\\images\\books\\upload_...
             // Nên phải convert lại đường dẫn
-            var path = image.path.replace('public', ''); // Xóa bỏ public ở đầu = cách thay thế thành ký tự ''
+            var path = files.photo.path.replace('public', ''); // Xóa bỏ public ở đầu = cách thay thế thành ký tự ''
             path = path.replace(/\\/g, '/'); // Thay thế ký tự \\ bằng ký tự /
             path_image.push(path + '.jpg');
-        })
+        }        
 
+        // Query insert vào bảng image
         var query_insert_images = "INSERT INTO book_images (image_id, book_id, image_path) VALUES (NULL, '" + book_id + "', '" + path_image[0] + "')";
         for(var i=1; i<path_image.length; i++) {
             query_insert_images += ", (NULL, '" + book_id + "', '" + path_image[i] + "')";
@@ -88,7 +89,6 @@ router.post('/info', function(req, res, next) {
         })
     } else {
         res.send({status: 'error'});
-        console.log('error');
     }
 })
 

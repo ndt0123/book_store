@@ -117,54 +117,12 @@ class InputBookImages extends React.Component {
     constructor(props) {
         super(props);
         input_book_image = this;
-        this.state = {
-            selectedImage: []
-        }
-    }
-
-    openImagePickerAsync = async () => {
-        if(this.state.selectedImage.length < 10) {
-            let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
-    
-            if (permissionResult.granted === false) {
-                alert('Permission to access camera roll is required!');
-                return;
-            }
-        
-            let pickerResult = await ImagePicker.launchImageLibraryAsync();
-            if (pickerResult.cancelled === true) {
-                return;
-            }
-
-            // Biến phụ lưu biến state.selectedImage
-            var arr_flag = this.state.selectedImage;
-            arr_flag.push(pickerResult);
-
-            // Trả danh sách hình ảnh về cho component cha
-            this.props.get_value(arr_flag);
-
-            this.setState({
-                selectedImage: arr_flag
-            })
-        }
-    };
-
-    deleteImage = (index) => {
-        var arr_flag = this.state.selectedImage;
-        arr_flag.splice(index, 1);
-        
-        // Trả danh sách hình ảnh về cho component cha
-        this.props.get_value(arr_flag);
-
-        this.setState({
-            selectedImage: arr_flag
-        })
     }
 
     render() {
         return (
             <View style={styles.box_option_input} >
-                <TouchableWithoutFeedback onPress={this.openImagePickerAsync}>
+                <TouchableWithoutFeedback onPress={this.props.add_image}>
                     <View style={[
                         styles.box_input_text,
                         { width: 70, height: 70, 
@@ -173,17 +131,17 @@ class InputBookImages extends React.Component {
                             justifyContent: 'center', 
                             backgroundColor: '#f1f1f1' }]}>
                         <Icon name='camera' color='#6b6b6b' size={20} />
-                        <Text style={{ color: '#6b6b6b' }}>{this.state.selectedImage.length}/10</Text>
+                        <Text style={{ color: '#6b6b6b' }}>{this.props.value.length}/10</Text>
                     </View>
                 </TouchableWithoutFeedback>
                 <View style={{paddingTop: 5}}>
                     {
-                        this.state.selectedImage.map(function(note, index) {
+                        this.props.value.map(function(note, index) {
                             if(index % 4 == 0) {
                                 return(
                                     <View style={{flexDirection: 'row'}} key={index}>
                                         <View style={{padding: 5, width: 80}}>
-                                            <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index)}>
+                                            <TouchableWithoutFeedback onPress={() => input_book_image.props.delete_image(index)}>
                                                 <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
                                                     <Icon name='close' size={18} color='#585858' />
                                                 </View>
@@ -191,38 +149,38 @@ class InputBookImages extends React.Component {
                                             <Image source={{ uri: note.uri }} style={{borderRadius: 5, width: 70, height: 70}} />
                                         </View>
                                         {
-                                            index+1 < input_book_image.state.selectedImage.length ? 
+                                            index+1 < input_book_image.props.value.length ? 
                                             <View style={{padding: 5, width: 80}}>
-                                                <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index+1)}>
+                                                <TouchableWithoutFeedback onPress={() => input_book_image.props.delete_image(index+1)}>
                                                     <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
                                                         <Icon name='close' size={18} color='#585858' />
                                                     </View>
                                                 </TouchableWithoutFeedback>
-                                                <Image source={{ uri: input_book_image.state.selectedImage[index+1].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                                <Image source={{ uri: input_book_image.props.value[index+1].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
                                             </View> :
                                             null
                                         }
                                         {
-                                            index+2 < input_book_image.state.selectedImage.length ? 
+                                            index+2 < input_book_image.props.value.length ? 
                                             <View style={{padding: 5, width: 80}}>
-                                                <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index+2)}>
+                                                <TouchableWithoutFeedback onPress={() => input_book_image.props.delete_image(index+2)}>
                                                     <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
                                                         <Icon name='close' size={18} color='#585858' />
                                                     </View>
                                                 </TouchableWithoutFeedback>
-                                                <Image source={{ uri: input_book_image.state.selectedImage[index+2].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                                <Image source={{ uri: input_book_image.props.value[index+2].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
                                             </View> :
                                             null
                                         }
                                         {
-                                            index+3 < input_book_image.state.selectedImage.length ? 
+                                            index+3 < input_book_image.props.value.length ? 
                                             <View style={{padding: 5, width: 80}}>
-                                                <TouchableWithoutFeedback onPress={() => input_book_image.deleteImage(index+3)}>
+                                                <TouchableWithoutFeedback onPress={() => input_book_image.props.delete_image(index+3)}>
                                                     <View style={{position: 'absolute', top: 0, right: 0, zIndex: 2, padding: 2}}>
                                                         <Icon name='close' size={18} color='#585858' />
                                                     </View>
                                                 </TouchableWithoutFeedback>
-                                                <Image source={{ uri: input_book_image.state.selectedImage[index+3].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
+                                                <Image source={{ uri: input_book_image.props.value[index+3].uri }} style={{borderRadius: 5, width: 70, height: 70}} />
                                             </View> :
                                             null
                                         }
@@ -248,37 +206,15 @@ class InputBookImages extends React.Component {
 
 /* Khung input tiêu đề sách */
 class InputBookTitle extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            number_of_input_character: 0, /* Số lượng kí tự tiêu đề */
-            text_input_value: '', /* Nội dung tiêu đề */
-        }
-    }
-
-    /*Sự kiện thay đổi nội dung tiêu đề */
-    onChangeInputTitle = (value) => {
-        if (value.length <= 50) {
-            this.setState({
-                text_input_value: value,
-                number_of_input_character: value.length,
-            })
-        }
-
-        // Truyền giá trị tiêu đề nhập vào lên component cha là NewBookScreen
-        this.props.get_value(value);
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
                     <TextInput placeholder='Tiêu đề'
-                        value={this.state.text_input_value}
+                        value={this.props.value}
                         style={{ flex: 6 }} maxLength={50}
-                        onChangeText={this.onChangeInputTitle}></TextInput>
-                    <Text style={{ color: '#6b6b6b', flex: 1, paddingLeft: 5, textAlign: 'right' }}>{this.state.number_of_input_character}/50</Text>
+                        onChangeText={(value) => this.props.get_value(value)}></TextInput>
+                    <Text style={{ color: '#6b6b6b', flex: 1, paddingLeft: 5, textAlign: 'right' }}>{this.props.input_number}/50</Text>
                 </View>
                 {
                     this.props.error_input == true ? 
@@ -295,33 +231,15 @@ class InputBookTitle extends React.Component {
 
 /* Khung input giá sách */
 class InputBookPrice extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            price_input_value: '', /* Nội dung giá sách */
-        }
-    }
-
-    /* Sự kiện thay đổi giá sách */
-    onChangeInputPrice = (v) => {
-        var value = v.split('.').join('');
-        this.setState({
-            price_input_value: value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')
-        })
-
-        this.props.get_value(value);
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
                     <TextInput placeholder='Giá bán (0đ là miễn phí)'
                         keyboardType='numeric'
-                        value={this.state.price_input_value}
+                        value={this.props.value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}
                         style={{ flex: 6 }}
-                        onChangeText={this.onChangeInputPrice} ></TextInput>
+                        onChangeText={(value) => this.props.get_value(value)} ></TextInput>
                     <Text style={{ color: '#6b6b6b', flex: 1, paddingLeft: 5, textAlign: 'right' }}>đồng</Text>
                 </View>
                 {
@@ -340,72 +258,16 @@ class InputBookPrice extends React.Component {
 /* Tình trạng sách */
 class InputBookStatus extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            status_input_value: '', /* Nội dung tình trạng sách */
-            max_input_length: 3, /* Độ dài nội dung max=3 */
-        }
-    }
-
-    /* Sự kiện thay đổi nội dung 
-        Giá trị max=100%
-     */
-    onChangeInputStatus = (v) => {
-        var value = v;
-
-        this.setState({
-            status_input_value: value
-        })
-
-        if (value.length == 1) {
-            if (value[0] == 0) {
-                this.setState({
-                    max_input_length: 1
-                })
-            } else {
-                this.setState({
-                    max_input_length: 3
-                })
-            }
-        } else if (value.length == 2) {
-            if (value[0] > 1) {
-                this.setState({
-                    max_input_length: 2
-                })
-            } else if (value[0] == 1) {
-                if (value[1] == 0) {
-                    this.setState({
-                        max_input_length: 3
-                    })
-                } else {
-                    this.setState({
-                        max_input_length: 2
-                    })
-                }
-            }
-        } else if (value.length == 3) {
-            if (value[2] != 0) {
-                this.setState({
-                    status_input_value: '100'
-                })
-            }
-        }
-
-
-        this.props.get_value(value);
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
                     <TextInput placeholder='Tình trạng sách (100% là sách mới)'
-                        value={this.state.status_input_value}
+                        value={this.props.value}
                         keyboardType='number-pad'
-                        maxLength={this.state.max_input_length}
+                        maxLength={this.props.max_length}
                         style={{ flex: 6 }}
-                        onChangeText={this.onChangeInputStatus}></TextInput>
+                        onChangeText={(value) => this.props.get_value(value)}></TextInput>
                     <Text style={{ color: '#6b6b6b', flex: 1, paddingLeft: 5, textAlign: 'right' }}>%</Text>
                 </View>
                 {
@@ -423,26 +285,11 @@ class InputBookStatus extends React.Component {
 
 /* Loại sách */
 class InputTypeOfBook extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            type_of_book: ''
-        }
-    }
-
-    onChangeTypeOfBook = (value) => {
-        this.setState({
-            type_of_book: value
-        })
-
-        this.props.get_value(value);
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, {}]}>
-                    <Picker selectedValue={this.state.type_of_book} onValueChange={this.onChangeTypeOfBook}>
+                    <Picker selectedValue={this.props.value} onValueChange={(value) => this.props.get_value(value)}>
                         <Picker.Item label="Thể loại sách" value="" />
                         <Picker.Item label="Sách trinh thám" value="Sách trinh thám" />
                         <Picker.Item label="Truyện tranh" value="Truyện tranh" />
@@ -477,31 +324,15 @@ class InputTypeOfBook extends React.Component {
 
 /* Mô tả sách */
 class InputBookDescription extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            description_input_value: '',
-        }
-    }
-
-    onChangeDescInput = (value) => {
-        this.setState({
-            description_input_value: value
-        })
-
-        this.props.get_value(value);
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
                     <TextInput placeholder='Mô tả chi tiết sách (tiêu đề sách, tác giả, nhà xuất bản, năm xuất bản, tình trạng sách,...)'
-                        value={this.state.description_input_value}
+                        value={this.props.value}
                         multiline={true}
                         style={{ width: '100%', height: 100 }}
-                        onChangeText={this.onChangeDescInput}></TextInput>
+                        onChangeText={(value) => this.props.get_value(value)}></TextInput>
                 </View>
                 {
                     this.props.error_input ? 
@@ -518,22 +349,6 @@ class InputBookDescription extends React.Component {
 
 /* Số điện thoại */
 class InputPhoneNumber extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {
-            phone_number_input_value: ''
-        }
-    }
-
-    onChangePhoneNumberInput = (value) => {
-        this.setState({
-            phone_number_input_value: value
-        })
-
-        this.props.get_value(value)
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
@@ -542,8 +357,8 @@ class InputPhoneNumber extends React.Component {
                         keyboardType='number-pad'
                         style={{ width: '100%' }}
                         maxLength={10}
-                        value={this.state.phone_number_input_value}
-                        onChangeText={this.onChangePhoneNumberInput}></TextInput>
+                        value={this.props.value}
+                        onChangeText={(value) => this.props.get_value(value)}></TextInput>
                 </View>
                 {
                     this.props.error_input ? 
@@ -561,29 +376,14 @@ class InputPhoneNumber extends React.Component {
 
 /* Tác giả */
 class InputBookAuthor extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            author_input_value: ''
-        }
-    }
-
-    onChangeAuthorInput = (value) => {
-        this.setState({
-            author_input_value: value
-        })
-
-        this.props.get_value(value);
-    }
-
     render() {
         return (
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
                     <TextInput placeholder='Tác giả'
                         style={{ width: '100%' }}
-                        value={this.state.author_input_value}
-                        onChangeText={this.onChangeAuthorInput}></TextInput>
+                        value={this.props.value}
+                        onChangeText={(value) => this.props.get_value(value)}></TextInput>
                 </View>
             </View>
         );
@@ -591,28 +391,14 @@ class InputBookAuthor extends React.Component {
 }
 
 class InputPosition extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            position_input_value: ''
-        }
-    }
-
-    onChangePositionInput = (value) => {
-        this.setState({
-            position_input_value: value
-        })
-
-        this.props.get_value(value);
-    }
     render() {
         return(
             <View style={styles.box_option_input} >
                 <View style={[styles.box_input_text, { flexDirection: 'row' }]}>
                     <TextInput placeholder='Địa điểm'
                         style={{ width: '100%' }}
-                        value={this.state.position_input_value}
-                        onChangeText={this.onChangePositionInput}></TextInput>
+                        value={this.props.value}
+                        onChangeText={(value) => this.props.get_value(value)}></TextInput>
                 </View>
                 {
                     this.props.error_input ? 
@@ -670,9 +456,15 @@ class NewBookScreen extends React.Component {
             error_position: false,
 
             img_value: [],
+
             title_value: '',
+            number_of_title_character: 0,
+
             price_value: '',
+
             status_value: '',
+            max_length_status_input: 3,
+
             phone_number_value: '',
             description_value: '',
             author_value: '',
@@ -681,23 +473,98 @@ class NewBookScreen extends React.Component {
         };
     }
 
+    // Hàm thêm hình ảnh vào state img_value khi click vào nút thêm ảnh
+    addImage = async () => {
+        if(this.state.img_value.length < 10) {
+            let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
+    
+            if (permissionResult.granted === false) {
+                alert('Permission to access camera roll is required!');
+                return;
+            }
+        
+            let pickerResult = await ImagePicker.launchImageLibraryAsync();
+            if (pickerResult.cancelled === true) {
+                return;
+            }
+
+            // Biến phụ lưu biến state.selectedImage
+            var arr_flag = this.state.img_value;
+            arr_flag.push(pickerResult);
+
+            this.setState({
+                img_value: arr_flag
+            })
+        }
+    };
+
+    // Xóa hình ảnh khỏi biến img_value khi click vào nút close trong ảnh
+    deleteImage = (index) => {
+        var arr_flag = this.state.img_value;
+        arr_flag.splice(index, 1);
+
+        this.setState({
+            img_value: arr_flag
+        })
+    }
+
     // Lấy giá trị title nhập vào từ component con InputBookTitle
     get_title_value = (value) => {
-        this.setState({
-            title_value: value,
-        })
+        if (value.length <= 50) {
+            this.setState({
+                title_value: value,
+                number_of_title_character: value.length,
+            })
+        }
     }
     //  Lấy giá trị price nhập vào từ component con
     get_price_value = (value) => {
+        var v = value.split('.').join('');
         this.setState({
-            price_value: value,
+            price_value: v,
         })
     }
     //  Lấy giá trị status nhập vào từ component con
-    get_status_value = (value) => {
+    get_status_value = (v) => {
+        var value = v;
+
         this.setState({
-            status_value: value,
+            status_value: value
         })
+
+        if (value.length == 1) {
+            if (value[0] == 0) {
+                this.setState({
+                    max_length_status_input: 1
+                })
+            } else {
+                this.setState({
+                    max_length_status_input: 3
+                })
+            }
+        } else if (value.length == 2) {
+            if (value[0] > 1) {
+                this.setState({
+                    max_length_status_input: 2
+                })
+            } else if (value[0] == 1) {
+                if (value[1] == 0) {
+                    this.setState({
+                        max_length_status_input: 3
+                    })
+                } else {
+                    this.setState({
+                        max_length_status_input: 2
+                    })
+                }
+            }
+        } else if (value.length == 3) {
+            if (value[2] != 0) {
+                this.setState({
+                    status_value: '100'
+                })
+            }
+        }
     }
     //  Lấy giá trị type of book nhập vào từ component con
     get_type_of_book_value = (value) => {
@@ -723,12 +590,6 @@ class NewBookScreen extends React.Component {
             description_value: value,
         })
     }
-    //  Lấy giá trị image nhập vào từ component con
-    get_img_value = (value) => {
-        this.setState({
-            img_value: value,
-        })
-    }
     // Lấy giá trị position nhập vào từ component con
     get_position_value = (value) => {
         this.setState({
@@ -736,7 +597,7 @@ class NewBookScreen extends React.Component {
         })
     }
 
-
+    // Hàm xử lý khi click vào nút 'Xong'
     on_submit = (error_img, error_title,
         error_price,
         error_status,
@@ -757,6 +618,10 @@ class NewBookScreen extends React.Component {
                 error_type_of_book: error_type_of_book,
                 error_position: error_position,
             })
+
+            // Thiết lập biến data có kiểu file FormData lưu file image
+            var data = new FormData();
+            var photos = this.state.img_value;
 
             // Nếu tất cả mọi trường đều không có lỗi input thì thực hiện gửi dữ liệu lên server để xử lý
             if(!error_img && !error_title && 
@@ -795,9 +660,6 @@ class NewBookScreen extends React.Component {
                             // Id của sách vừa mới thêm vào
                             var book_id = responseJson.book_id;
 
-                            // Thiết lập biến data có kiểu file FormData lưu file image
-                            const data = new FormData();
-                            var photos = this.state.img_value;
                             // Set giá trị cho biến data theo form dữ liệu của file
                             photos.forEach((photo) => {
                                 data.append('photo', {
@@ -863,9 +725,37 @@ class NewBookScreen extends React.Component {
                     .catch((error) => {
                         console.error(error);
                     });;
+
+
+                    this.setState({
+                        error_img: false,
+                        error_title: false,
+                        error_price: false,
+                        error_status: false,
+                        error_phone_number: false,
+                        error_description: false,
+                        error_author: false,
+                        error_type_of_book: false,
+                        error_position: false,
+
+                        img_value: [],
+
+                        title_value: '',
+                        number_of_title_character: 0,
+
+                        price_value: '',
+
+                        status_value: '',
+                        max_length_status_input: 3,
+
+                        phone_number_value: '',
+                        description_value: '',
+                        author_value: '',
+                        type_of_book_value: '',
+                        position_value: ''
+                    })
                 }
     }
-
 
     render() {
         return (
@@ -884,23 +774,23 @@ class NewBookScreen extends React.Component {
                     position_value={this.state.position_value}
                 />
                 <ScrollView style={styles.box_content}>
-                    <InputBookImages error_input={this.state.error_img} get_value={this.get_img_value} />
+                    <InputBookImages error_input={this.state.error_img} value={this.state.img_value} add_image={this.addImage} delete_image={this.deleteImage} />
 
-                    <InputBookTitle error_input={this.state.error_title} get_value={this.get_title_value} />
+                    <InputBookTitle error_input={this.state.error_title} get_value={this.get_title_value} value={this.state.title_value} input_number={this.state.number_of_title_character} />
 
-                    <InputBookPrice error_input={this.state.error_price} get_value={this.get_price_value} />
+                    <InputBookPrice error_input={this.state.error_price} get_value={this.get_price_value} value={this.state.price_value} />
 
-                    <InputBookStatus error_input={this.state.error_status} get_value={this.get_status_value} />
+                    <InputBookStatus error_input={this.state.error_status} get_value={this.get_status_value} value={this.state.status_value} max_length={this.state.max_length_status_input} />
 
-                    <InputTypeOfBook error_input={this.state.error_type_of_book} get_value={this.get_type_of_book_value} />
+                    <InputTypeOfBook error_input={this.state.error_type_of_book} get_value={this.get_type_of_book_value} value={this.state.type_of_book_value} />
 
-                    <InputBookAuthor error_input={this.state.error_author} get_value={this.get_author_value} />
+                    <InputBookAuthor error_input={this.state.error_author} get_value={this.get_author_value} value={this.state.author_value} />
 
-                    <InputPhoneNumber error_input={this.state.error_phone_number} get_value={this.get_phone_number_value} />
+                    <InputPhoneNumber error_input={this.state.error_phone_number} get_value={this.get_phone_number_value} value={this.state.phone_number_value} />
 
-                    <InputPosition error_input={this.state.error_position} get_value={this.get_position_value} />
+                    <InputPosition error_input={this.state.error_position} get_value={this.get_position_value} value={this.state.position_value} />
 
-                    <InputBookDescription error_input={this.state.error_description} get_value={this.get_description_value} />
+                    <InputBookDescription error_input={this.state.error_description} get_value={this.get_description_value} value={this.state.description_value} />
 
                     <Infomation />
 

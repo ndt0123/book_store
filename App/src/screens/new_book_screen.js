@@ -10,7 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-import {getTimeLeft, server} from '../../config';
+import {getTimeLeft, server, storeUserId, getUserId} from '../../config';
 
 var input_book_image;
 
@@ -606,6 +606,7 @@ class NewBookScreen extends React.Component {
         error_author,
         error_type_of_book,
         error_position) => {
+
             Keyboard.dismiss();
             this.setState({
                 error_img: error_img,

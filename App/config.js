@@ -1,3 +1,6 @@
+
+import { AsyncStorage } from 'react-native';
+
 export function getTimeLeft(time) {
     var time_present = new Date(); // Thời gian ở thời điểm hiện tại
 
@@ -46,7 +49,24 @@ export function isLoggedIn() {
     return logged_in;
 }
 
+export async function storeUserId(user) {
+    try {
+        await AsyncStorage.setItem("user_id", JSON.stringify(user));
+    } catch (error) {
+        console.log("Something went wrong", error);
+    }
+}
+export const getUserId = async function getUserId() {
+    try {
+        let userData = await AsyncStorage.getItem("user_id");
+        let data = JSON.parse(userData);
+        console.log(data);
+    } catch (error) {
+        console.log("Something went wrong", error);
+    }
+}
+
 //export const server = 'http://192.168.43.3:3000';
 //export const server = 'http://172.20.10.2:3000';
 //export const server = 'http://192.168.1.103:3000';
-export const server = 'http://192.168.1.101:3000';
+export const server = 'http://192.168.1.100:3000';

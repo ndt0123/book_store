@@ -36,10 +36,10 @@ class MyTabs extends React.Component {
         this.setState({
             logged_in: isLoggedIn()
         })
-        console.log(isLoggedIn());
     }
 
     render() {
+        const logInScreen = props => (<LogInScreen logged_in={() => this.setState({logged_in: true})}/>);
         return (
             <Tab.Navigator
                 screenOptions={({ route }) => ({
@@ -71,8 +71,7 @@ class MyTabs extends React.Component {
                 {
                     this.state.logged_in == false ? 
                         (
-                            <Tab.Screen name="Đăng nhập" component={() => <LogInScreen logged_in={() => this.setState({logged_in: true})}/> }
-                                />
+                            <Tab.Screen name="Đăng nhập" component={logInScreen} />
                         ) :                        
                         (
                             <>

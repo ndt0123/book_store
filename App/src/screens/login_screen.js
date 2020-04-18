@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableWithoutFeedback, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableWithoutFeedback, TextInput, AsyncStorage } from 'react-native';
 
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 
-import {getTimeLeft, server} from '../../config';
+import {getTimeLeft, server, storeUserId, getUserId} from '../../config';
 
 class SignIn extends React.Component {
 
@@ -93,6 +93,8 @@ class SignIn extends React.Component {
                         signIn_fail: false,
                     })
 
+                    //Lưu user_id vào storage
+                    storeUserId(responseJson.user_id);
                     this.props.logged_in();
                 }
             })
@@ -245,7 +247,12 @@ class LogIn extends React.Component {
                     this.setState({
                         login_fail: false
                     })
+
+                    //Lưu user_id vào storage
+                    storeUserId(responseJson.user_id);
                     this.props.logged_in();
+
+                    getUserId();
                 }
             })
             .catch((error) => {

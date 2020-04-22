@@ -12,6 +12,7 @@ var bookDetailsRouter = require('./routes/book_details');
 var searching = require('./routes/searching');
 var auth = require('./routes/auth');
 var newBook = require('./routes/new_book');
+var accountInfo = require('./routes/account_info');
 
 var app = express();
 
@@ -46,6 +47,7 @@ app.use('/book-details', bookDetailsRouter);
 app.use('/searching', searching);
 app.use('/auth', auth);
 app.use('/new-book', newBook);
+app.use('/account-info', accountInfo);
 
 
 // catch 404 and forward to error handler

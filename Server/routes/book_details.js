@@ -32,6 +32,31 @@ router.get('/:id/details', function (req, res, next) {
 
 });
 
+// Lấy thông tin về nội dung và hình ảnh của sách
+router.get('/book-info/:id', function (req, res, next) {
+
+    var book_id = req.params['id'];
+    var book_info;
+    var book_images;
+
+    var query_book_details = "SELECT * FROM books WHERE book_id=" + book_id;
+    connect_db.con.query(query_book_details, function (err_details, details) {
+        if (err_details) throw err_details;
+
+        book_info = details[0];
+        var query_book_images = "SELECT image_path FROM book_images WHERE book_id=" + book_id;
+        connect_db.con.query(query_book_images, function (err_images, images) {
+            if (err_images) throw err_images;
+            book_images = images;
+
+            res.send({ book_info, book_images });
+        })
+    });
+
+});
+
+
+
 router.get('/:id/recommended', function (req, res, next) {
     var book_id = req.params['id'];
 

@@ -251,8 +251,6 @@ class LogIn extends React.Component {
                     //Lưu user_id vào storage
                     storeUserId(responseJson.user_id);
                     this.props.logged_in();
-
-                    getUserId();
                 }
             })
             .catch((error) => {

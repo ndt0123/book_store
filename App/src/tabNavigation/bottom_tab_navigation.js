@@ -21,7 +21,7 @@ import AccountScreen from '../screens/account_screen';
 import HomeScreen from '../screens/home_screen';
 import LogInScreen from '../screens/login_screen';
 
-import {getTimeLeft, server, isLoggedIn} from '../../config';
+import { isLoggedIn} from '../../config';
 
 const Tab = createBottomTabNavigator();
 

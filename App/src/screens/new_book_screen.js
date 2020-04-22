@@ -1,11 +1,5 @@
-﻿
-/*
- Màn hình đăng lên quyển sách mới
- */
-
-
-import React from 'react';
-import { TextInput, View, StyleSheet, Text, ScrollView, Picker, TouchableWithoutFeedback, Image, Alert, Keyboard } from 'react-native';
+﻿import React from 'react';
+import { TextInput, View, StyleSheet, Text, ScrollView, Picker, TouchableWithoutFeedback, Image, Alert, Keyboard, AsyncStorage } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -445,6 +439,8 @@ class NewBookScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            user_id: 0,
+
             error_img: false,
             error_title: false,
             error_price: false,
@@ -471,6 +467,26 @@ class NewBookScreen extends React.Component {
             type_of_book_value: '',
             position_value: ''
         };
+    }
+
+    //Lấy user_id của người dùng
+    getUserId = async () => {
+        try {
+            let userData = await AsyncStorage.getItem("user_id");
+            let data = JSON.parse(userData);
+            this.setState({
+                user_id: data
+            })
+        } catch (error) {
+            this.setState({
+                user_id: 0
+            })
+        }
+    }
+
+    componentDidMount() {
+        //Gọi hàm lấy user_id
+        this.getUserId();
     }
 
     // Hàm thêm hình ảnh vào state img_value khi click vào nút thêm ảnh
@@ -648,7 +664,8 @@ class NewBookScreen extends React.Component {
                             description_value: this.state.description_value,
                             author_value: this.state.author_value,
                             type_of_book_value: this.state.type_of_book_value,
-                            position_value: this.state.position_value
+                            position_value: this.state.position_value,
+                            user_id: this.state.user_id,
                         })
                     })
                     .then((response) => response.json())

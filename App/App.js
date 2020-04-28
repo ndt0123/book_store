@@ -9,6 +9,7 @@ import SearchingResultsScreen from './src/screens/searching_results_screen';
 import NotificationScreen from './src/screens/notification_screen';
 import LogInScreen from './src/screens/login_screen';
 import BookEdittingScreen from './src/screens/book_editting_screen';
+import AccountEditting from './src/screens/account_editting_screen';
 
 const Stack = createStackNavigator();
 
@@ -84,6 +85,15 @@ export default function App() {
                 <Stack.Screen
                     name='Book editting'
                     component={BookEdittingScreen}
+                    options={{
+                        headerBackTitleVisible: false,
+                        headerTitle: null,
+                        headerShown: false
+                    }}
+                />
+                <Stack.Screen
+                    name='Account editting'
+                    component={AccountEditting}
                     options={{
                         headerBackTitleVisible: false,
                         headerTitle: null,

@@ -44,9 +44,11 @@ class AccountInfo extends React.Component {
                     </View>
                 </View>
 
-                <View style={{ paddingTop: 20 }}>
-                    <Text style={{ textAlign: 'right' }}>Sửa hồ sơ</Text>
-                </View>
+                <TouchableWithoutFeedback onPress={this.props.press_on_account_editting_btn}>
+                    <View style={{ paddingTop: 20 }}>
+                        <Text style={{ textAlign: 'right' }}>Sửa hồ sơ</Text>
+                    </View>
+                </TouchableWithoutFeedback>
             </View>
 
         );
@@ -539,7 +541,12 @@ class AccountScreen extends React.Component {
             <View style={styles.box_screen}>
                 <AccountInfo 
                     user_info={this.state.user_info} 
-                    num_of_follower={this.state.num_of_follower}/>
+                    num_of_follower={this.state.num_of_follower}
+                    press_on_account_editting_btn={() => {
+                        this.props.navigation.navigate('Account editting', {
+                            user_id: this.state.user_id
+                        });
+                    }}/>
                 <OwnBooks 
                     selling_books={this.state.selling_books} 
                     stop_selling_books={this.state.stop_selling_books} 

@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var formidable = require('formidable');
+var fs = require('fs');
 
 var connect_db = require('../modules/connect_db.js');
 
@@ -92,6 +94,55 @@ router.get('/edit/book-watching/:user_id/:book_id', function(req, res, next) {
     var query_unwatching = "DELETE FROM books_watching WHERE user_id=" + user_id + " AND book_id=" + book_id;
     console.log(query_unwatching);
     connect_db.con.query(query_unwatching, function(err, result) {
+        if(err) {
+            res.send({status: 'error'});
+            throw err;
+        }
+        res.send({status: 'success'});
+    })
+})
+
+router.post('/edit/avatar/:id', function(req, res, next) {
+    // Id của người dùng
+    var user_id = req.params['id'];
+
+    var form = new formidable.IncomingForm();
+    form.uploadDir = './public/images/avatars';
+    form.multiples = false;
+
+    form.parse(req, function (err, fields, files) {
+
+        fs.rename(files.photo.path, files.photo.path + '.jpg', function (err) {
+            if (err) throw err;
+        });
+
+        // Do path có đường dẫn public\\images\\books\\upload_...
+        // Nên phải convert lại đường dẫn
+        var path = files.photo.path.replace('public', ''); // Xóa bỏ public ở đầu = cách thay thế thành ký tự ''
+        path = path.replace(/\\/g, '/'); // Thay thế ký tự \\ bằng ký tự /
+
+        var query_edit_avatar = "UPDATE users SET avatar = '" + path + ".jpg' WHERE users.user_id = " + user_id;
+        
+        connect_db.con.query(query_edit_avatar, function(err, result) {
+            if(err) {
+                res.send({status: 'error'});
+                throw err
+            }
+            res.send({status: 'success'});
+        })
+    })
+})
+
+router.post('/edit/info/:id', function(req, res, next) {
+    // Id của người dùng
+    var user_id = req.params['id'];
+    var name = req.body.name;
+    var phone_number = req.body.phone_number;
+    var type_of_user = req.body.type_of_user;
+
+    var query_edit_info_account = "UPDATE users SET name = '" + name + "', type_of_user = '" + type_of_user + "', phone_number = '" + phone_number + "' WHERE users.user_id = " + user_id;
+    
+    connect_db.con.query(query_edit_info_account, function(err, result) {
         if(err) {
             res.send({status: 'error'});
             throw err;

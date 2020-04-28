@@ -684,7 +684,7 @@ class NewBookScreen extends React.Component {
                                     uri: photo.uri,
                                     type: 'image/jpeg', // or photo.type
                                     name: 'img_' + Math.floor(Math.random() * Math.floor(999999999)) + '.jpg'
-                                });  
+                                });
                             });
 
                             // Fetch dữ liệu lên server

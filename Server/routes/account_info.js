@@ -26,7 +26,11 @@ router.get('/info/:user_id', function (req, res, next) {
                 res.send({status: 'error'});
                 throw err2
             }
-            num_of_follower = result2[0];
+            if(result2[0] == undefined) {
+                num_of_follower = {"num_of_follower": 0};
+            } else {
+                num_of_follower = result2[0];
+            }
 
             res.send({status: 'success', user_info: user_info, num_of_follower: num_of_follower});
         })

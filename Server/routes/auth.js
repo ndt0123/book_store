@@ -49,7 +49,7 @@ router.post('/signin', function(req, res) {
             res.send({status: 'error', error: 'Tên tài khoản đã tồn tại'});
         } else {
             // Query thêm tài khoản vào csdl
-            var query_insert_user = "INSERT INTO users (user_id, name, avatar, type_of_user, phone_number, username, password) VALUES (NULL, '" + username + "', '/images/user_avatar.jpg\r\n', 'Cá nhân', '', '" + username + "', '" + password + "')";
+            var query_insert_user = "INSERT INTO users (user_id, name, avatar, type_of_user, phone_number, username, password) VALUES (NULL, '" + username + "', '/images/avatars/default_user_avatar.jpg\r\n', 'Cá nhân', '', '" + username + "', '" + password + "')";
             connect_db.con.query(query_insert_user, function(err, result) {
                 if(err) {
                     res.send({status: 'error', error: 'Đã xảy ra lỗi'});

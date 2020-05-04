@@ -62,4 +62,4 @@ export async function storeUserId(user) {
 //export const server = 'http://192.168.43.3:3000';
 //export const server = 'http://172.20.10.2:3000';
 //export const server = 'http://192.168.1.103:3000';
-export const server = 'http://192.168.1.103:3000';
+export const server = 'http://192.168.1.107:3000';

@@ -622,6 +622,7 @@ class BookEdittingScreen extends React.Component {
                                 'Thành công',
                                 [
                                   {text: 'OK', onPress: () => {
+                                      this.props.route.params.update_state(this.props.route.params.user_id);
                                       this.props.navigation.navigate('Tài khoản');
                                     }},
                                 ],

@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableWithoutFeedback, Image, TextInput, Keyboard, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableWithoutFeedback, Image, TextInput, Keyboard, TouchableHighlight, ActivityIndicator, AsyncStorage } from 'react-native';
 
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
@@ -7,6 +7,9 @@ import Slideshow from 'react-native-slideshow';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import {getTimeLeft, server} from '../../config';
+
+var book_recommended;
+var comments;
 
 // Header
 class Header extends React.Component {
@@ -47,6 +50,7 @@ class ImageSlideShow extends React.Component {
 class BookInfo extends React.Component {
 
     render() {
+        console.log(this.props);
         return (
             <View style={{ padding: 10, marginTop: 10 }}>
 
@@ -85,11 +89,19 @@ class BookInfo extends React.Component {
                                 <IconAntDesign name='clockcircleo' color='#D96704' size={10} style={[styles.info_icon_style]} />
                                 <Text style={{ color: '#6b6b6b' }}>{getTimeLeft(this.props.details[0].time_update)}</Text>
                             </View>
+
+                            <View style={[styles.box_info]}>
+                                <IconEntypo name='location' color='#D96704' size={10} style={[styles.info_icon_style]} />
+                                <Text style={{ color: '#6b6b6b' }}>{this.props.details[0].position}</Text>
+                            </View>
                         </View>
 
-                        <View style={{ alignSelf: 'flex-end' }}>
-                            <IconEntypo name='heart-outlined' color='#D96704' size={30} />
-                        </View>
+                        {
+                            this.props.logged_in ?
+                            <View style={{ alignSelf: 'flex-end' }}>
+                                <IconEntypo name='heart-outlined' color='#D96704' size={30} />
+                            </View> : null
+                        }
                     </View>
 
                     <View style={{ backgroundColor: '#D6D6D6', borderRadius: 5, padding: 10, marginTop: 10, marginBottom: 20 }}>
@@ -102,9 +114,12 @@ class BookInfo extends React.Component {
                             <Text style={{ fontSize: 18, paddingLeft: 10, alignSelf: 'center' }}>{this.props.details[0].name}</Text>
                         </View>
 
-                        <View style={{ borderColor: '#D96704', borderWidth: 1, borderRadius: 3, alignSelf: 'center', paddingLeft: 5, paddingRight: 5 }}>
-                            <IconAntDesign name='eyeo' color='#D96704' size={20} />
-                        </View>
+                        {
+                            this.props.logged_in ?
+                            <View style={{ borderColor: '#D96704', borderWidth: 1, borderRadius: 3, alignSelf: 'center', paddingLeft: 5, paddingRight: 5 }}>
+                                <IconAntDesign name='eyeo' color='#D96704' size={20} />
+                            </View> : null
+                        }
                     </View>
 
                 </View>
@@ -119,16 +134,16 @@ class Contact extends React.Component {
     render() {
         return (
             <View style={{ flexDirection: 'row', position: 'absolute', bottom: 0, padding: 10, backgroundColor: 'transparent' }}>
-                <View style={[styles.box_chat_button]} >
+                <View style={[styles.box_chat_button, {backgroundColor: '#29a705'}]} >
                     <Text style={[styles.text_chat_button]} >
-                        <IconEntypo name='message' color='white' size={17} /> Nhắn tin
-                            </Text>
+                        <IconEntypo name='phone' color='white' size={17} /> Gọi điện
+                    </Text>
                 </View>
 
                 <View style={[styles.box_chat_button]} >
                     <Text style={[styles.text_chat_button]} >
                         <IconEntypo name='chat' color='white' size={17} /> Chat
-                            </Text>
+                    </Text>
                 </View>
             </View>
             );
@@ -151,15 +166,18 @@ class OneComment extends React.Component {
                     </View>
                 </View>
 
-                <View style={[
-                    styles.box_input_feild,
-                    { marginLeft: 80 }]}
-                >
-                    <TextInput placeholder="Viết trả lời..." style={{ padding: 5, flex: 3 }}></TextInput>
-                    <TouchableHighlight underlayColor='#dadada'>
-                        <Text style={[styles.text_comment_btn]}>Gửi</Text>
-                    </TouchableHighlight>
-                </View>
+                {
+                    this.props.logged_in ?
+                    <View style={[
+                        styles.box_input_feild,
+                        { marginLeft: 80 }]}
+                    >
+                        <TextInput placeholder="Viết trả lời..." style={{ padding: 5, flex: 3 }}></TextInput>
+                        <TouchableHighlight underlayColor='#dadada'>
+                            <Text style={[styles.text_comment_btn]}>Gửi</Text>
+                        </TouchableHighlight>
+                    </View> : null
+                }
 
                 {
                     this.props.comments_reply.map(function (note, index) {
@@ -184,7 +202,6 @@ class OneComment extends React.Component {
     }
 }
 // Bình luân về sách
-var comments;
 class Comments extends React.Component {
 
     constructor(props) {
@@ -200,6 +217,13 @@ class Comments extends React.Component {
                 <View>
                     <Text style={[styles.category_text]}>Bình luận</Text>
                 </View>
+
+                {
+                    this.props.comments.length == 0 ?
+                    <View style={{ padding: 10}}>
+                        <Text style={{color: '#6b6b6b'}}>Không có bình luận.</Text>
+                    </View> : null
+                }
 
                 {
                     this.props.comments.map(function (note, index) {
@@ -219,15 +243,18 @@ class Comments extends React.Component {
                     })
                 }               
 
-                <View style={[
-                    styles.box_input_feild,
-                    { marginLeft: 50 }]}
-                >
-                    <TextInput placeholder="Viết bình luận..." style={{ flex: 3, padding: 5 }}></TextInput>
-                    <TouchableHighlight underlayColor='#dadada'>
-                        <Text style={[styles.text_comment_btn]}>Gửi</Text>
-                    </TouchableHighlight>
-                </View>
+                {
+                    this.props.logged_in ?
+                    <View style={[
+                        styles.box_input_feild,
+                        { marginLeft: 50 }]}
+                    >
+                        <TextInput placeholder="Viết bình luận..." style={{ flex: 3, padding: 5 }}></TextInput>
+                        <TouchableHighlight underlayColor='#dadada'>
+                            <Text style={[styles.text_comment_btn]}>Gửi</Text>
+                        </TouchableHighlight>
+                    </View> : null
+                }
 
             </View>
             );
@@ -258,7 +285,6 @@ class OneBookRecommend extends React.Component {
     }
 }
 // Sách gợi ý
-var book_recommended;
 class BooksRecommend extends React.Component {
 
     constructor(props) {
@@ -268,7 +294,7 @@ class BooksRecommend extends React.Component {
 
     render() {
         return (
-            <View style={{ paddingBottom: 20 }}>
+            <View style={{ paddingBottom: 40 }}>
                 <View style={{ padding: 10 }}>
                     <Text style={[styles.category_text]}>Sách cùng thể loại</Text>
                 </View>
@@ -291,50 +317,86 @@ class BookDetailScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isLoading: true
+            isLoadingInfo: true,
+            isLoadingRecommended: true,
+            logged_in: false,
+            details: [],
+            books_recommended: [],
         }
     }
 
-    //Hàm lấy dữ liệu từ server
-    // Tham số truyền vào là id của sách
-    getDataFromServer = (book_id) => {
+    // Hàm lấy dữ liệu về thông tin của sách từ server
+    // Set giá trị cho biến state.details với thông tin vừa nhận và state.isLoading=false
+    getBookInfo = (book_id) => {
         fetch(server + '/book-details/' + book_id + '/details')
             .then((response) => response.json())
-            .then((responseJsonDetails) => {
-
-                fetch(server + '/book-details/' + book_id + '/recommended')
-                    .then((response) => response.json())
-                    .then((responseJsonRecommended) => {
-                        this.setState({
-                            isLoading: false,
-                            details: responseJsonDetails,
-                            books_recommended: responseJsonRecommended
-                        })
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                    });
+            .then((responseJson) => {
+                this.setState({
+                    isLoadingInfo: false,
+                    details: responseJson,
+                })
             })
             .catch((error) => {
                 console.error(error);
             });
     }
 
+    // Hàm lấy dữ liệu về các quyển sách được gợi ý
+    // Set giá trị cho biến state.books_recommended
+    getBookRecommended = (book_id) => {
+        fetch(server + '/book-details/' + book_id + '/recommended')
+        .then((response) => response.json())
+        .then((responseJson) => {
+            this.setState({
+                isLoadingRecommended: false,
+                books_recommended: responseJson
+            })
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
+
+    // Kiểm tra xem người dùng đã đăng nhập chưa
+    // Bằng cách kiểm tra xem trong AsyncStorage có user_id không
+    // Nếu đã đăng nhập thì set biến state.logged_in = true
+    isLoggedIn = async () => {
+        try {
+            let userData = await AsyncStorage.getItem("user_id");
+            let user_id = JSON.parse(userData);
+            if(user_id == null) {
+                this.setState({
+                    logged_in: false
+                })
+            } else {
+                this.setState({
+                    logged_in: true,
+                    logged_in_id: user_id,
+                })
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     componentDidMount() {
+        // Kiểm tra xem người dùng đã đăng nhập chưa
+        this.isLoggedIn();
+
+        //Biến params được pass từ screen trước chứa id của quyển sách
         const { book_id } = this.props.route.params;
-        this.getDataFromServer(book_id);
+        
+        // Gọi hàm lấy dữ liệu về quyến sách từ server
+        this.getBookInfo(book_id);
+        this.getBookRecommended(book_id);
     }
 
     render() {
-        // Biến lưu navigation của trang trước 
-        // vd: Nếu book detail được hiển thị khi click vào sách ở trang home thì previousScreen là 'Home'
-        // biến dùng để xác định screen trước đó khi click vào button quay lại ở header
-        const { previousScreen } = this.props.route.params;
-        const { book_id } = this.props.route.params;
+        //const { book_id } = this.props.route.params;
 
         // Nếu chưa load được dữ liệu thì return ra màn hình trắng với icon loading
         // Nếu load được dữ liệu thì return ra nội dung
-        if (this.state.isLoading) {
+        if (this.state.isLoadingRecommended || this.state.isLoadingInfo) {
             return (
                 <View style={{ flex: 1, padding: 20 }}>
                     <ActivityIndicator />
@@ -342,22 +404,38 @@ class BookDetailScreen extends React.Component {
             )
         }
         return (
-            <View style={{ paddingBottom: 50}}>
+            <View>
                 <Header onPressBackButton={() => {
-                    this.props.navigation.navigate(previousScreen);
+                    this.props.navigation.goBack();
                 }} />
 
                 <ScrollView>
-                    <ImageSlideShow images={this.state.details.images} />
-                    <BookInfo details={this.state.details.details} />
-                    <Comments comments={this.state.details.comments} comments_reply={this.state.details.comments_reply} />
+                    <ImageSlideShow 
+                        images={this.state.details.images} />
+                    <BookInfo 
+                        details={this.state.details.details} 
+                        logged_in={this.state.logged_in}/>
+                    <Comments 
+                        comments={this.state.details.comments} 
+                        comments_reply={this.state.details.comments_reply} 
+                        logged_in={this.state.logged_in} />
                     <BooksRecommend
                         books={this.state.books_recommended}
-                        onPressBook={this.getDataFromServer}
+                        onPressBook={(book_id) => {
+                            this.setState({
+                                isLoadingInfo: true,
+                                isLoadingRecommended: true,
+                            })
+                            this.getBookInfo(book_id);
+                            this.getBookRecommended(book_id);
+                        }}
                     />
                 </ScrollView>
 
-                <Contact />
+                {
+                    this.state.logged_in && this.state.logged_in_id != this.state.details.details[0].user_id ?
+                    <Contact/> : null
+                }
             </View>
         );
     }

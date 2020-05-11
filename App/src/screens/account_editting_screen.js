@@ -288,6 +288,7 @@ class AccountEditting extends React.Component {
                                         'Thành công.',
                                         [
                                         {text: 'OK', onPress: () => {
+                                            this.props.route.params.update_state(user_id);
                                             this.props.navigation.goBack();
                                         }},
                                         ],
@@ -313,6 +314,7 @@ class AccountEditting extends React.Component {
                                 'Thành công.',
                                 [
                                 {text: 'OK', onPress: () => {
+                                    this.props.route.params.update_state(user_id);
                                     this.props.navigation.goBack();
                                 }},
                                 ],

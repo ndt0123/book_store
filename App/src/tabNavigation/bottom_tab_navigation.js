@@ -9,7 +9,7 @@
 
 
 import * as React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, AsyncStorage } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -21,8 +21,6 @@ import AccountScreen from '../screens/account_screen';
 import HomeScreen from '../screens/home_screen';
 import LogInScreen from '../screens/login_screen';
 
-import { isLoggedIn} from '../../config';
-
 const Tab = createBottomTabNavigator();
 
 class MyTabs extends React.Component {
@@ -32,14 +30,32 @@ class MyTabs extends React.Component {
             logged_in: false
         }
     }
+
     componentDidMount() {
-        this.setState({
-            logged_in: isLoggedIn()
-        })
+        // Gọi hàm kiểm tra xem đã đăng nhập chưa (tức là user_id đã được lưu trong AsyncStorage chưa)
+        this.isLoggedIn();
+    }
+
+    // Kiểm tra xem người dùng đã từng đăng nhập trên máy này chưa
+    // Tức là kiểm tra xem trong AsyncStorage có user_id không
+    // Nếu đã từng đăng nhập thì set biến state.logged_in = true
+    isLoggedIn = async () => {
+        try {
+            let userData = await AsyncStorage.getItem("user_id");
+            let user_id = JSON.parse(userData);
+            if(user_id != null) {
+                this.setState({
+                    logged_in: true
+                })
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     render() {
         const logInScreen = props => (<LogInScreen logged_in={() => this.setState({logged_in: true})}/>);
+        //const accountScreen = props => (<AccountScreen log_out={() => this.setState({logged_in: false})}/>);
         return (
             <Tab.Navigator
                 screenOptions={({ route }) => ({
@@ -71,13 +87,17 @@ class MyTabs extends React.Component {
                 {
                     this.state.logged_in == false ? 
                         (
-                            <Tab.Screen name="Đăng nhập" component={logInScreen} />
-                        ) :                        
+                            <Tab.Screen name="Đăng nhập">
+                                {props => (<LogInScreen logged_in={() => this.setState({logged_in: true})} navigation={this.props.navigation}/>)}
+                            </Tab.Screen>
+                        ) :
                         (
                             <>
                             <Tab.Screen name="Đăng bài" component={NewBookScreen} />
                             <Tab.Screen name="Chat" component={MessageScreen} />
-                            <Tab.Screen name="Tài khoản" component={AccountScreen} />
+                            <Tab.Screen name="Tài khoản">
+                                {props => (<AccountScreen log_out={() => this.setState({logged_in: false})} navigation={this.props.navigation}/>)}
+                            </Tab.Screen>
                             </>
                         )
                 }

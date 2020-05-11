@@ -40,34 +40,6 @@ class HomeHeader extends React.Component {
     }
 }
 
-/*Một quyển sách */
-class Book extends React.Component {
-
-    render() {
-        return (
-            <TouchableWithoutFeedback onPress={this.props.onPressBooks}>
-                <View style={styles.box_book}>
-                    <View style={{ flex: 3 }}>
-                        <Image source={{ uri: server + this.props.book.image_path }} style={styles.image} />
-                    </View>
-                    <View style={{ flex: 7, flexDirection: 'column' }}>
-                        <Text style={{ fontWeight: 'bold', flex: 3, height: 50 }} >{this.props.book.title}</Text>
-                        {
-                            this.props.book.status == 100 ?
-                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách mới (100%)</Text> :
-                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text>
-                        }
-                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
-                            <Text style={{ flex: 1, fontWeight: 'bold', color: '#6b6b6b' }}>{this.props.book.price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')} đ</Text>
-                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{getTimeLeft(this.props.book.time_update)}</Text>
-                        </View>
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
-        );
-    }
-}
-
 //Phần các tùy chọn cho bộ lọc sách
 //      -Sách cũ, sách mới
 //      -Các thể loại sách
@@ -325,6 +297,34 @@ class SearchingView extends React.Component {
     }
 }
 
+/*Một quyển sách */
+class Book extends React.Component {
+
+    render() {
+        return (
+            <TouchableWithoutFeedback onPress={this.props.onPressBooks}>
+                <View style={styles.box_book}>
+                    <View style={{ flex: 3 }}>
+                        <Image source={{ uri: server + this.props.book.image_path }} style={styles.image} />
+                    </View>
+                    <View style={{ flex: 7, flexDirection: 'column' }}>
+                        <Text style={{ fontWeight: 'bold', flex: 3, height: 50 }} >{this.props.book.title}</Text>
+                        {
+                            this.props.book.status == 100 ?
+                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách mới (100%)</Text> :
+                                <Text style={{ flex: 1, color: '#6b6b6b' }}>Sách cũ ({this.props.book.status}%)</Text>
+                        }
+                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
+                            <Text style={{ flex: 1, fontWeight: 'bold', color: '#6b6b6b' }}>{this.props.book.price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')} đ</Text>
+                            <Text style={{ flex: 1, textAlign: 'right', color: '#6b6b6b' }}>{getTimeLeft(this.props.book.time_update)}</Text>
+                        </View>
+                    </View>
+                </View>
+            </TouchableWithoutFeedback>
+        );
+    }
+}
+
 /*Màn hình trang chủ */
 var home_screen;
 class HomeScreen extends React.Component {
@@ -334,17 +334,24 @@ class HomeScreen extends React.Component {
         home_screen = this;
         this.state = {
             isLoading: true,
-            display_searching_view: false
+            display_searching_view: false,
+            is_loading_new_data: false,
         }
     }
 
     componentDidMount() {
-        return fetch(server + '/home/all-books')
+        this.getAllBookFromServer();
+    }
+
+    // lấy dữ liệu của tất cả sách
+    getAllBookFromServer = () => {
+        fetch(server + '/home/all-books')
             .then((response) => response.json())
             .then((responseJson) => {
                 this.setState({
                     isLoading: false,
-                    books: responseJson
+                    books: responseJson,
+                    is_loading_new_data: false,
                 })
             })
             .catch((error) => {
@@ -385,7 +392,25 @@ class HomeScreen extends React.Component {
                     }} 
                 />
 
-                <ScrollView style={styles.box_scrollView}>
+                <ScrollView 
+                    style={styles.box_scrollView}
+                    onScroll = { (e) => {
+                        if(e.nativeEvent.contentOffset.y == 0){
+                            this.setState({
+                                is_loading_new_data: true,
+                            })
+                            this.getAllBookFromServer();
+                        } 
+                        // if(e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height) {
+                        //     alert("bottom");
+                        // }
+                    }}>
+                    {
+                        this.state.is_loading_new_data ? 
+                            <View style={{padding: 10}}>
+                                <ActivityIndicator />
+                            </View> : null
+                    }
                     <BookOptionHome navigation={this.props.navigation} />
                     <View style={{ marginTop: 180 }}>
                         {
@@ -396,7 +421,6 @@ class HomeScreen extends React.Component {
                                         book={note}
                                         onPressBooks={() => {
                                             home_screen.props.navigation.navigate('Book Detail', {
-                                                previousScreen: 'Home',
                                                 book_id: note.book_id,
                                             });
                                         }}

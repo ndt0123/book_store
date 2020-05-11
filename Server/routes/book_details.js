@@ -7,7 +7,7 @@ var connect_db = require('../modules/connect_db.js');
 router.get('/:id/details', function (req, res, next) {
 
     var book_id = req.params['id'];
-    var query_book_details = "SELECT B.title, B.price, B.status, B.type_of_book, B.author, B.phone_number, B.describle, B.time_update, U.name, U.avatar FROM books B INNER JOIN users U on B.user_id=U.user_id WHERE B.book_id=" + book_id;
+    var query_book_details = "SELECT B.user_id, B.title, B.price, B.status, B.type_of_book, B.author, B.phone_number, B.position, B.describle, B.time_update, U.name, U.avatar FROM books B INNER JOIN users U on B.user_id=U.user_id WHERE B.book_id=" + book_id;
     connect_db.con.query(query_book_details, function (err_details, details) {
         if (err_details) throw err_details;
 
@@ -63,7 +63,6 @@ router.get('/:id/recommended', function (req, res, next) {
     var query_book_details = "SELECT title, price, author, type_of_book FROM books WHERE book_id=" + book_id;
     connect_db.con.query(query_book_details, function (err_details, details) {
         if (err_details) throw err_details;
-        console.log(details);
 
         var query_book_recommended = "SELECT B.book_id, B.title, B.price, B.status, BI.image_path FROM books B INNER JOIN book_images BI ON B.book_id=BI.book_id WHERE B.title='" + details[0].title + "' OR B.author='" + details[0].author + "' OR B.type_of_book='" + details[0].type_of_book + "' OR B.price > " + details[0].price * 0.9 + " AND B.price < " + details[0].price * 1.1 + " GROUP BY B.book_id";
         connect_db.con.query(query_book_recommended, function (err_recommended, recommended) {

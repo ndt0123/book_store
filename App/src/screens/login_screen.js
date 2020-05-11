@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableWithoutFeedback, TextInput, AsyncStora
 
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 
-import {getTimeLeft, server, storeUserId, getUserId} from '../../config';
+import {getTimeLeft, server, storeUserId} from '../../config';
 
 class SignIn extends React.Component {
 

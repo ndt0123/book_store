@@ -7,7 +7,7 @@ import { StyleSheet, View, Text, Image, ScrollView, TouchableWithoutFeedback, As
 
 import IconEntypo from 'react-native-vector-icons/Entypo';
 
-import {getTimeLeft, server} from '../../config';
+import {getTimeLeft, server, removeUserFromAsyncStorage} from '../../config';
 
 var book_selling;
 var book_stop_selling;
@@ -44,11 +44,18 @@ class AccountInfo extends React.Component {
                     </View>
                 </View>
 
-                <TouchableWithoutFeedback onPress={this.props.press_on_account_editting_btn}>
-                    <View style={{ paddingTop: 20 }}>
-                        <Text style={{ textAlign: 'right' }}>Sửa hồ sơ</Text>
-                    </View>
-                </TouchableWithoutFeedback>
+                <View style={{flexDirection: 'row', paddingTop: 20, justifyContent: 'space-between'}}>
+                    <TouchableWithoutFeedback onPress={this.props.press_on_account_editting_btn}>
+                        <View style={{ paddingTop: 20 }}>
+                            <Text style={{ textAlign: 'right' }}>Sửa hồ sơ</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
+                    <TouchableWithoutFeedback onPress={this.props.press_on_log_out_btn}>
+                        <View style={{ paddingTop: 20 }}>
+                            <Text style={{ textAlign: 'right' }}>Đăng xuất</Text>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
             </View>
 
         );
@@ -544,8 +551,35 @@ class AccountScreen extends React.Component {
                     num_of_follower={this.state.num_of_follower}
                     press_on_account_editting_btn={() => {
                         this.props.navigation.navigate('Account editting', {
-                            user_id: this.state.user_id
+                            user_id: this.state.user_id,
+                            update_state: this.getAccountInfoFromServer.bind(this),
                         });
+                    }}
+                    press_on_log_out_btn={() => {
+                        Alert.alert(
+                            "Thông báo",
+                            "Bạn có muốn đăng xuất không?",
+                            [
+                                {
+                                    text: "Không",
+                                    style: "cancel"
+                                },
+                                { text: "Có", onPress: () => {
+                                    fetch(server + '/auth/logout')
+                                    .then((response) => response.json())
+                                    .then((responseJson) => {
+                                        if(responseJson.status == "success") {
+                                            removeUserFromAsyncStorage();
+                                            this.props.log_out();
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.error(error);
+                                    });
+                                } }
+                            ],
+                            { cancelable: false }
+                          );
                     }}/>
                 <OwnBooks 
                     selling_books={this.state.selling_books} 
@@ -604,7 +638,9 @@ class AccountScreen extends React.Component {
                                         display_setting_option: false
                                     })
                                     this.props.navigation.navigate('Book editting', {
-                                        book_id: this.state.book_id_of_setting_option
+                                        user_id: this.state.user_id,
+                                        book_id: this.state.book_id_of_setting_option,
+                                        update_state: this.getBookOwnerFromServer.bind(this),
                                     })
                                 } else if(action == 'Ngừng theo dõi') {
                                     fetch(server + '/account-info/edit/book-watching/' + this.state.user_id + '/' + this.state.book_id_of_setting_option)

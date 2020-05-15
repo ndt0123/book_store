@@ -25,7 +25,9 @@ class MessageHeader extends React.Component {
 class Message extends React.Component {
     render() {
         return (
-            <TouchableWithoutFeedback onPress={this.props.goToConversation}>
+            <TouchableWithoutFeedback onPress={() => {
+                this.props.navigation.navigate('Conversation')
+            }}>
                 <View style={styles.box_message}>
                     <View style={styles.box_avatar_img}>
                         <Image source={require('../../images/book_1.jpg')} style={styles.avatar_img} />
@@ -44,22 +46,18 @@ class Message extends React.Component {
 }
 
 /*Màn hình */
-function MessageScreen({ navigation }) {
+class MessageScreen extends React.Component {
+    render() {
         return (
             <View style={styles.box_screen}>
                 <MessageHeader />
                 <ScrollView style={styles.box_conversations} >
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
-                    <Message goToConversation={() => navigation.navigate('Conversation')} />
+                    <Message 
+                        navigation={this.props.navigation}/>
                 </ScrollView>
             </View>
             );
+    }
 }
 export default MessageScreen;
 

@@ -29,14 +29,8 @@ export default function App() {
                     component={ConversationScreen}
                     options={{
                         headerBackTitleVisible: false,
-                        headerTitle: 'Nguyễn Duy Tâm',
-                        headerTintColor: 'white',
-                        headerStyle: {
-                            backgroundColor: '#D96704'
-                        },
-                        headerTitleStyle: {
-                            color: 'black'
-                        }
+                        headerTitle: null,
+                        headerShown: false,
                     }}
                 />
                 <Stack.Screen

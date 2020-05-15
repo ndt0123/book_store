@@ -3,11 +3,34 @@
  */
 
 import React from 'react';
-import { StyleSheet, View, TextInput, Text, ScrollView, Image, Keyboard } from 'react-native';
+import { StyleSheet, View, TextInput, Text, ScrollView, Image, Keyboard, TouchableWithoutFeedback } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Feather';
+import IconEntypo from 'react-native-vector-icons/Entypo';
 
 import {getTimeLeft, server} from '../../config';
+
+class Header extends React.Component {
+
+    render() {
+        return (
+            <View style={styles.box_header}>
+                <TouchableWithoutFeedback onPress={() => {
+                    this.props.navigation.goBack();                  
+                }}>
+                    <View style={{paddingRight: 10}}>
+                        <IconEntypo name="chevron-left" color="#D96704" size={30} />
+                    </View>
+                </TouchableWithoutFeedback>
+                <View>
+                    <Text>Nguyeenx duy tam</Text>
+                </View>
+                
+            </View>
+            
+        );
+    }
+}
 
 /*
  Component hiển thị nội dung cuộc trò chuyện
@@ -300,6 +323,8 @@ class ConversationScreen extends React.Component {
     render() {
         return (
             <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                <Header 
+                    navigation={this.props.navigation}/>
                 <Content />
                 <InputFeild />
             </View>
@@ -309,15 +334,6 @@ class ConversationScreen extends React.Component {
 export default ConversationScreen;
 
 const styles = StyleSheet.create({
-    box_header: {
-        paddingTop: 30,
-        paddingBottom: 7,
-        paddingLeft: 5,
-        paddingRight: 5,
-        flexDirection: 'row',
-        borderBottomColor: '#dadada',
-        borderBottomWidth: 1,
-    },
     avatar_img: {
         width: 40,
         height: 40,
@@ -347,5 +363,16 @@ const styles = StyleSheet.create({
         marginBottom: 2,
         maxWidth: 200,
         alignSelf: 'flex-end',
+    },
+
+    box_header: {
+        padding: 5,
+        paddingTop: 30,
+        paddingBottom: 7,
+        flexDirection: 'row',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: 2
     },
 });

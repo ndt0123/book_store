@@ -228,9 +228,6 @@ class OwnBooks extends React.Component {
         })
     }
     render() {
-        // console.log(this.props.selling_books);
-        // console.log(this.props.stop_selling_books);
-        // console.log(this.props.watching_books);
 
         if (this.props.is_loading) {
             return (
@@ -240,7 +237,11 @@ class OwnBooks extends React.Component {
             )
         } 
         return (
-            <ScrollView>
+            <ScrollView onScroll = { (e) => {
+                if(e.nativeEvent.contentOffset.y == 0){
+                    this.props.update_data(this.props.user_id);
+                }
+            }}>
                 <View style={{ flexDirection: 'column', padding: 10, paddingTop: 20 }}>
 
                     <View style={{ paddingBottom: 10 }}>
@@ -598,7 +599,9 @@ class AccountScreen extends React.Component {
                             previousScreen: 'Tài khoản',
                             book_id: book_id,
                         });
-                    }}/>
+                    }}
+                    user_id={this.state.user_id}
+                    update_data={this.getBookOwnerFromServer}/>
 
                 {
                     this.state.display_setting_option ? 

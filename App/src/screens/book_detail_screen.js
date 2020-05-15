@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableWithoutFeedback, Image, TextInput, Keyboard, TouchableHighlight, ActivityIndicator, AsyncStorage } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableWithoutFeedback, Image, TextInput, Keyboard, TouchableHighlight, ActivityIndicator, AsyncStorage, Alert } from 'react-native';
 
 import IconEntypo from 'react-native-vector-icons/Entypo';
 import IconAntDesign from 'react-native-vector-icons/AntDesign';
@@ -29,17 +29,27 @@ class Header extends React.Component {
 
 // Hình ảnh của sách
 class ImageSlideShow extends React.Component {
-    render() {
-
-        // Set giá trị cho biến imagesLink lưu đường dẫn của các ảnh
-        var imagesLink = [];
-        for (var i = 0; i < this.props.images.length; i++) {
-            imagesLink.push({ url: server + this.props.images[i].image_path })
+    constructor(props) {
+        super(props);
+        this.state = {
+            imagesLink: []
         }
+    }
+    componentDidMount() {
+        // Set giá trị cho biến imagesLink lưu đường dẫn của các ảnh
+        var images = []
+        for (var i = 0; i < this.props.images.length; i++) {
+            images.push({ url: server + this.props.images[i].image_path })
+        }
+        this.setState({
+            imagesLink: images
+        })
+    }
 
+    render() {
         return (
             <Slideshow
-                dataSource={imagesLink}
+                dataSource={this.state.imagesLink}
                 height={300}
             />
         );
@@ -49,8 +59,181 @@ class ImageSlideShow extends React.Component {
 // Thông tin của sách (Tên, giá, trạng thái,...)
 class BookInfo extends React.Component {
 
+    // Hàm xử lý để thêm người dùng theo dõi sách
+    watchingBook = () => {
+        fetch(server + '/book-details/' + this.props.details[0].book_id + '/watching?user_id=' + this.props.logged_in_id)
+        .then((response) => response.json())
+        .then((responseJson) => {
+            if(responseJson.status == 'error') {
+                Alert.alert(
+                    'Thông báo',
+                    'Đã xảy ra lỗi',
+                    [
+                        {
+                            text: 'OK',
+                            style: "cancel"
+                        },
+                    ],
+                    { cancelable: false }
+                )
+            } else if(responseJson.status == 'success') {
+                this.props.update_state_watching_following(this.props.details[0].book_id);
+            }
+        })
+    }
+
+    // Hàm xử lý khi người dùng hủy theo dõi sách
+    unwatchingBook = () => {
+        fetch(server + '/book-details/' + this.props.details[0].book_id + '/unwatching?user_id=' + this.props.logged_in_id)
+        .then((response) => response.json())
+        .then((responseJson) => {
+            if(responseJson.status == 'error') {
+                Alert.alert(
+                    'Thông báo',
+                    'Đã xảy ra lỗi',
+                    [
+                        {
+                            text: 'OK',
+                            style: "cancel"
+                        },
+                    ],
+                    { cancelable: false }
+                )
+            } else if(responseJson.status == 'success') {
+                this.props.update_state_watching_following(this.props.details[0].book_id);
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
+
+    // Hàm xử lý để thêm người dùng theo dõi người dùng
+    followingUser = () => {
+        fetch(server + '/book-details/' + this.props.details[0].book_id + '/following?user_id=' + this.props.logged_in_id)
+        .then((response) => response.json())
+        .then((responseJson) => {
+            if(responseJson.status == 'error') {
+                Alert.alert(
+                    'Thông báo',
+                    'Đã xảy ra lỗi',
+                    [
+                        {
+                            text: 'OK',
+                            style: "cancel"
+                        },
+                    ],
+                    { cancelable: false }
+                )
+            } else if(responseJson.status == 'success') {
+                this.props.update_state_watching_following(this.props.details[0].book_id);
+            }
+        })
+    }
+
+    // Hàm xử lý khi người dùng hủy theo dõi người dùng
+    unfollowingUser = () => {
+        fetch(server + '/book-details/' + this.props.details[0].user_id + '/unfollowing?user_id=' + this.props.logged_in_id)
+        .then((response) => response.json())
+        .then((responseJson) => {
+            if(responseJson.status == 'error') {
+                Alert.alert(
+                    'Thông báo',
+                    'Đã xảy ra lỗi',
+                    [
+                        {
+                            text: 'OK',
+                            style: "cancel"
+                        },
+                    ],
+                    { cancelable: false }
+                )
+            } else if(responseJson.status == 'success') {
+                this.props.update_state_watching_following(this.props.details[0].book_id);
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
+
+    // Khi press vào nút quan tâm sách
+    pressOnWatchingBtn = () => {
+        // Nếu người dùng đã theo dõi sách trước đó thì khi nhấn vào sẽ hiển thị thông báo hỏi xem có muốn hủy theo dõi không
+        // Còn nếu chưa theo dõi thì hỏi xem có đồng ý thêm vào danh sách quan tâm không
+        if(this.props.is_watching_book) {
+            Alert.alert(
+                "Thông báo",
+                "Bỏ quan tâm sách?",
+                [
+                    {
+                        text: "Hủy",
+                        style: "cancel"
+                    },
+                    { text: "OK", onPress: () => {
+                        // Gọi hàm xử lý hủy theo dõi sách
+                        this.unwatchingBook();
+                    } }
+                ],
+                { cancelable: false }
+            );
+        } else {
+            Alert.alert(
+                "Thông báo",
+                "Thêm vào danh sách quan tâm?",
+                [
+                    {
+                        text: "Hủy",
+                        style: "cancel"
+                    },
+                    { text: "OK", onPress: () => {
+                        // Gọi hàm xử lý theo dõi sách
+                        this.watchingBook();
+                    } }
+                ],
+                { cancelable: false }
+            );
+        }
+    }
+
+    // Khi press vào nút theo dõi người dùng
+    pressOnFollowingBtn = () => {
+        // Nếu người dùng đã theo dõi người bán trước đó thì khi nhấn vào sẽ hiển thị thông báo hỏi xem có muốn hủy theo dõi không
+        // Còn nếu chưa theo dõi thì hỏi xem có đồng ý theo dõi không
+        if(this.props.is_following_user) {
+            Alert.alert(
+                "Thông báo",
+                "Bỏ theo dõi người dùng này?",
+                [
+                    {
+                        text: "Hủy",
+                        style: "cancel"
+                    },
+                    { text: "OK", onPress: () => {
+                        this.unfollowingUser()
+                    } }
+                ],
+                { cancelable: false }
+            );
+        } else {
+            Alert.alert(
+                "Thông báo",
+                "Theo dõi người dùng này?",
+                [
+                    {
+                        text: "Hủy",
+                        style: "cancel"
+                    },
+                    { text: "OK", onPress: () => {
+                        this.followingUser();
+                    } }
+                ],
+                { cancelable: false }
+            );
+        }
+    }
+
     render() {
-        console.log(this.props);
         return (
             <View style={{ padding: 10, marginTop: 10 }}>
 
@@ -97,10 +280,16 @@ class BookInfo extends React.Component {
                         </View>
 
                         {
-                            this.props.logged_in ?
-                            <View style={{ alignSelf: 'flex-end' }}>
-                                <IconEntypo name='heart-outlined' color='#D96704' size={30} />
-                            </View> : null
+                            this.props.logged_in && this.props.logged_in_id != this.props.details[0].user_id ?
+                            <TouchableWithoutFeedback onPress={this.pressOnWatchingBtn}>
+                                <View style={{ alignSelf: 'flex-end' }}>
+                                    {
+                                        this.props.is_watching_book ?
+                                        <IconEntypo name='heart' color='#D96704' size={30} /> :
+                                        <IconEntypo name='heart-outlined' color='#D96704' size={30} />
+                                    }
+                                </View>
+                            </TouchableWithoutFeedback> : null
                         }
                     </View>
 
@@ -115,10 +304,18 @@ class BookInfo extends React.Component {
                         </View>
 
                         {
-                            this.props.logged_in ?
-                            <View style={{ borderColor: '#D96704', borderWidth: 1, borderRadius: 3, alignSelf: 'center', paddingLeft: 5, paddingRight: 5 }}>
-                                <IconAntDesign name='eyeo' color='#D96704' size={20} />
-                            </View> : null
+                            this.props.logged_in && this.props.logged_in_id != this.props.details[0].user_id ?
+                            <TouchableWithoutFeedback onPress={this.pressOnFollowingBtn}>
+                                {
+                                    this.props.is_following_user ?
+                                    <View style={{ borderColor: '#D96704', backgroundColor: '#D96704', borderWidth: 1, borderRadius: 3, alignSelf: 'center', paddingLeft: 5, paddingRight: 5 }}>
+                                        <IconAntDesign name='eyeo' color='white' size={20} />
+                                    </View> :
+                                    <View style={{ borderColor: '#D96704', borderWidth: 1, borderRadius: 3, alignSelf: 'center', paddingLeft: 5, paddingRight: 5 }}>
+                                        <IconAntDesign name='eyeo' color='#D96704' size={20} />
+                                    </View>
+                                }
+                            </TouchableWithoutFeedback> : null
                         }
                     </View>
 
@@ -134,17 +331,25 @@ class Contact extends React.Component {
     render() {
         return (
             <View style={{ flexDirection: 'row', position: 'absolute', bottom: 0, padding: 10, backgroundColor: 'transparent' }}>
-                <View style={[styles.box_chat_button, {backgroundColor: '#29a705'}]} >
-                    <Text style={[styles.text_chat_button]} >
-                        <IconEntypo name='phone' color='white' size={17} /> Gọi điện
-                    </Text>
-                </View>
+                <TouchableWithoutFeedback>
+                    <View style={[styles.box_chat_button, {backgroundColor: '#29a705'}]} >
+                        <Text style={[styles.text_chat_button]} >
+                            <IconEntypo name='phone' color='white' size={17} /> Gọi điện
+                        </Text>
+                    </View>
+                </TouchableWithoutFeedback>
 
-                <View style={[styles.box_chat_button]} >
-                    <Text style={[styles.text_chat_button]} >
-                        <IconEntypo name='chat' color='white' size={17} /> Chat
-                    </Text>
-                </View>
+                <TouchableWithoutFeedback onPress={() => {
+                    this.props.navigation.navigate('Conversation', {
+                        
+                    })
+                }}>
+                    <View style={[styles.box_chat_button]} >
+                        <Text style={[styles.text_chat_button]} >
+                            <IconEntypo name='chat' color='white' size={17} /> Chat
+                        </Text>
+                    </View>
+                </TouchableWithoutFeedback>
             </View>
             );
     }
@@ -152,6 +357,56 @@ class Contact extends React.Component {
 
 // Một bình luận
 class OneComment extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            comment_reply_content: ""
+        }
+    }
+
+    pressOnSubmitCommentBtn = () => {
+        var comment_reply_content = this.state.comment_reply_content.trim();
+        if(comment_reply_content != "") {
+            // // Tiến hành thêm bình luận vào csdl
+            fetch(server + '/book-details/comment/' + this.props.book_id + '/post-comment-reply', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id_user_comment: this.props.logged_in_id,
+                    content: comment_reply_content,
+                    comment_id: this.props.comments.comment_id
+                })
+            })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                if(responseJson.status == 'error') {
+                    Alert.alert(
+                        'Thông báo',
+                        'Đã xảy ra lỗi',
+                        [
+                            {
+                                text: 'OK',
+                                style: "cancel"
+                            },
+                        ],
+                        { cancelable: false }
+                    )
+                } else if(responseJson.status == 'success') {
+                    this.props.update_comment_content(this.props.book_id);
+                }
+                this.setState({
+                    comment_reply_content: ""
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+        }
+    }
+
     render() {
         return (
             <View style={{ padding: 5, paddingTop: 10, paddingBottom: 10 }}>
@@ -172,8 +427,18 @@ class OneComment extends React.Component {
                         styles.box_input_feild,
                         { marginLeft: 80 }]}
                     >
-                        <TextInput placeholder="Viết trả lời..." style={{ padding: 5, flex: 3 }}></TextInput>
-                        <TouchableHighlight underlayColor='#dadada'>
+                        <TextInput 
+                            placeholder="Viết trả lời..." 
+                            style={{ padding: 5, flex: 3 }}
+                            value={this.state.comment_reply_content}
+                            onChangeText={(value) => {
+                                this.setState({
+                                    comment_reply_content: value
+                                })
+                            }}></TextInput>
+                        <TouchableHighlight 
+                            underlayColor='#dadada'
+                            onPress={this.pressOnSubmitCommentBtn}>
                             <Text style={[styles.text_comment_btn]}>Gửi</Text>
                         </TouchableHighlight>
                     </View> : null
@@ -208,6 +473,51 @@ class Comments extends React.Component {
         super(props);
         comments = this;
         this.state = {
+            comment_content: ""
+        }
+    }
+
+    // Xử lý khi có sự kiện press on nút "gửi"
+    pressOnSubmitCommentBtn = () => {
+        var comment_content = this.state.comment_content.trim();
+        if(comment_content != "") {
+            // Tiến hành thêm bình luận vào csdl
+            fetch(server + '/book-details/comment/' + this.props.book_id + '/post-comment', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id_user_comment: this.props.logged_in_id,
+                    content: comment_content
+                })
+            })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                if(responseJson.status == 'error') {
+                    Alert.alert(
+                        'Thông báo',
+                        'Đã xảy ra lỗi',
+                        [
+                            {
+                                text: 'OK',
+                                style: "cancel"
+                            },
+                        ],
+                        { cancelable: false }
+                    )
+                } else if(responseJson.status == 'success') {
+                    this.props.update_comment_content(this.props.book_id);
+                }
+
+                this.setState({
+                    comment_content: ""
+                })
+            })
+            .catch((error) => {
+                console.error(error);
+            });
         }
     }
 
@@ -238,6 +548,10 @@ class Comments extends React.Component {
                                 key={index}
                                 comments={note}
                                 comments_reply={reply}
+                                logged_in={comments.props.logged_in}
+                                logged_in_id={comments.props.logged_in_id}
+                                update_comment_content={comments.props.update_comment_content}
+                                book_id={comments.props.book_id}
                             />
                             )
                     })
@@ -249,8 +563,19 @@ class Comments extends React.Component {
                         styles.box_input_feild,
                         { marginLeft: 50 }]}
                     >
-                        <TextInput placeholder="Viết bình luận..." style={{ flex: 3, padding: 5 }}></TextInput>
-                        <TouchableHighlight underlayColor='#dadada'>
+                        <TextInput 
+                            placeholder="Viết bình luận..." 
+                            style={{ flex: 3, padding: 5 }}
+                            value={this.state.comment_content}
+                            onChangeText={(value) => {
+                                this.setState({
+                                    comment_content: value
+                                })
+                            }}>
+                        </TextInput>
+                        <TouchableHighlight 
+                            underlayColor='#dadada'
+                            onPress={this.pressOnSubmitCommentBtn}>
                             <Text style={[styles.text_comment_btn]}>Gửi</Text>
                         </TouchableHighlight>
                     </View> : null
@@ -320,8 +645,15 @@ class BookDetailScreen extends React.Component {
             isLoadingInfo: true,
             isLoadingRecommended: true,
             logged_in: false,
+            logged_in_id: 0,
             details: [],
+            images: [],
+            comments: [],
+            comments_reply: [],
             books_recommended: [],
+            is_watching_book: false,
+            is_following_user: false,
+            is_loading_new_data: false,
         }
     }
 
@@ -329,16 +661,19 @@ class BookDetailScreen extends React.Component {
     // Set giá trị cho biến state.details với thông tin vừa nhận và state.isLoading=false
     getBookInfo = (book_id) => {
         fetch(server + '/book-details/' + book_id + '/details')
-            .then((response) => response.json())
-            .then((responseJson) => {
-                this.setState({
-                    isLoadingInfo: false,
-                    details: responseJson,
-                })
+        .then((response) => response.json())
+        .then((responseJson) => {
+            this.setState({
+                isLoadingInfo: false,
+                details: responseJson.details,
+                images: responseJson.images,
+                comments: responseJson.comments,
+                comments_reply: responseJson.comments_reply
             })
-            .catch((error) => {
-                console.error(error);
-            });
+        })
+        .catch((error) => {
+            console.error(error);
+        });
     }
 
     // Hàm lấy dữ liệu về các quyển sách được gợi ý
@@ -350,6 +685,45 @@ class BookDetailScreen extends React.Component {
             this.setState({
                 isLoadingRecommended: false,
                 books_recommended: responseJson
+            })
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+    }
+
+    // Hàm kiểm tra xem người dùng đăng nhập có theo dõi sách hay theo dõi người dùng không
+    getIsWatchingFollowing = async (book_id) => {
+        try {
+            let userData = await AsyncStorage.getItem("user_id");
+            let user_id = JSON.parse(userData);
+            if(user_id != null) {
+                fetch(server + '/book-details/' + book_id + '/watching-following?user_id=' + user_id)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                    this.setState({
+                        is_watching_book: responseJson.is_watching,
+                        is_following_user: responseJson.is_following
+                    })
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    // Lấy toàn bộ comment của sách
+    getComment = (book_id) => {
+        fetch(server + '/book-details/comment/' + book_id)
+        .then((response) => response.json())
+        .then((responseJson) => {
+            this.setState({
+                is_loading_new_data: false,
+                comments: responseJson.comments,
+                comments_reply: responseJson.comments_reply
             })
         })
         .catch((error) => {
@@ -382,24 +756,24 @@ class BookDetailScreen extends React.Component {
     componentDidMount() {
         // Kiểm tra xem người dùng đã đăng nhập chưa
         this.isLoggedIn();
-
+        
         //Biến params được pass từ screen trước chứa id của quyển sách
         const { book_id } = this.props.route.params;
         
         // Gọi hàm lấy dữ liệu về quyến sách từ server
         this.getBookInfo(book_id);
         this.getBookRecommended(book_id);
+        this.getIsWatchingFollowing(book_id);
     }
 
     render() {
-        //const { book_id } = this.props.route.params;
 
         // Nếu chưa load được dữ liệu thì return ra màn hình trắng với icon loading
         // Nếu load được dữ liệu thì return ra nội dung
         if (this.state.isLoadingRecommended || this.state.isLoadingInfo) {
             return (
-                <View style={{ flex: 1, padding: 20 }}>
-                    <ActivityIndicator />
+                <View style={{ flex: 1 }}>
+                    <ActivityIndicator style={{ flex: 1 }} />
                 </View>
             )
         }
@@ -409,16 +783,37 @@ class BookDetailScreen extends React.Component {
                     this.props.navigation.goBack();
                 }} />
 
-                <ScrollView>
+                <ScrollView
+                    onScroll = { (e) => {
+                        if(e.nativeEvent.contentOffset.y == 0){
+                            this.setState({
+                                is_loading_new_data: true,
+                            })
+                            this.getComment(this.props.route.params.book_id);
+                        }
+                    }}>
+                    {
+                        this.state.is_loading_new_data ? 
+                            <View style={{padding: 10}}>
+                                <ActivityIndicator />
+                            </View> : null
+                    }
                     <ImageSlideShow 
-                        images={this.state.details.images} />
+                        images={this.state.images} />
                     <BookInfo 
-                        details={this.state.details.details} 
-                        logged_in={this.state.logged_in}/>
+                        details={this.state.details} 
+                        logged_in={this.state.logged_in}
+                        logged_in_id={this.state.logged_in_id}
+                        is_watching_book={this.state.is_watching_book}
+                        is_following_user={this.state.is_following_user}
+                        update_state_watching_following={this.getIsWatchingFollowing}/>
                     <Comments 
-                        comments={this.state.details.comments} 
-                        comments_reply={this.state.details.comments_reply} 
-                        logged_in={this.state.logged_in} />
+                        comments={this.state.comments} 
+                        comments_reply={this.state.comments_reply} 
+                        logged_in={this.state.logged_in} 
+                        logged_in_id={this.state.logged_in_id}
+                        book_id={this.props.route.params.book_id}
+                        update_comment_content={this.getComment}/>
                     <BooksRecommend
                         books={this.state.books_recommended}
                         onPressBook={(book_id) => {
@@ -428,13 +823,15 @@ class BookDetailScreen extends React.Component {
                             })
                             this.getBookInfo(book_id);
                             this.getBookRecommended(book_id);
+                            this.getIsWatchingFollowing(book_id);
                         }}
                     />
                 </ScrollView>
 
                 {
-                    this.state.logged_in && this.state.logged_in_id != this.state.details.details[0].user_id ?
-                    <Contact/> : null
+                    this.state.logged_in && this.state.logged_in_id != this.state.details[0].user_id ?
+                    <Contact
+                        navigation={this.props.navigation}/> : null
                 }
             </View>
         );

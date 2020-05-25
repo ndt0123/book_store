@@ -5,7 +5,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var session = require('express-session');
 var bodyParser = require("body-parser");
-//var formidableMiddleware = require('express-formidable');
 
 var allBookRouter = require('./routes/all_books');
 var bookDetailsRouter = require('./routes/book_details');
@@ -14,6 +13,7 @@ var auth = require('./routes/auth');
 var newBook = require('./routes/new_book');
 var accountInfo = require('./routes/account_info');
 var message = require('./routes/message');
+var messageSocket = require('./routes/message_socket');
 
 var app = express();
 
@@ -37,11 +37,6 @@ app.use(session({
   cookie: { maxAge: 60000 }})
 );
 
-// app.use(formidableMiddleware({
-//   encoding: 'utf-8',
-//   uploadDir: './public/images/books',
-//   multiples: true, // req.files to be arrays of files
-// }));
 
 app.use('/home', allBookRouter);
 app.use('/book-details', bookDetailsRouter);
@@ -50,6 +45,7 @@ app.use('/auth', auth);
 app.use('/new-book', newBook);
 app.use('/account-info', accountInfo);
 app.use('/message', message);
+app.use('/message-socket', messageSocket);
 
 
 // catch 404 and forward to error handler

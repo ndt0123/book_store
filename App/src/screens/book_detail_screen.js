@@ -341,7 +341,10 @@ class Contact extends React.Component {
 
                 <TouchableWithoutFeedback onPress={() => {
                     this.props.navigation.navigate('Conversation', {
-                        
+                        partner_id: this.props.user_id,
+                        partner_name: this.props.user_name,
+                        partner_avatar: this.props.user_avatar,
+                        logged_in_id: this.props.logged_in_id
                     })
                 }}>
                     <View style={[styles.box_chat_button]} >
@@ -831,7 +834,11 @@ class BookDetailScreen extends React.Component {
                 {
                     this.state.logged_in && this.state.logged_in_id != this.state.details[0].user_id ?
                     <Contact
-                        navigation={this.props.navigation}/> : null
+                        navigation={this.props.navigation}
+                        user_id={this.state.details[0].user_id}
+                        user_name={this.state.details[0].name}
+                        user_avatar={this.state.details[0].avatar}
+                        logged_in_id={this.state.logged_in_id}/> : null
                 }
             </View>
         );

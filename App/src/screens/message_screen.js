@@ -5,9 +5,11 @@
 
 
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, Image, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Image, TouchableWithoutFeedback, AsyncStorage, ActivityIndicator } from 'react-native';
 
 import {getTimeLeft, server} from '../../config';
+
+var messageScreen;
 
 /*Header */
 class MessageHeader extends React.Component {
@@ -23,20 +25,33 @@ class MessageHeader extends React.Component {
 
 /*Một cuộc trò chuyện */
 class Message extends React.Component {
+
+    getTime = (time) => {
+        var time_update = new Date(time);
+        var month = time_update.getMonth();
+        var day = time_update.getDate();
+        var hours = time_update.getHours();
+        var minute = time_update.getMinutes();
+        return hours + ":" + minute + " " + day + " Th " + month;
+    }
+
     render() {
         return (
             <TouchableWithoutFeedback onPress={() => {
-                this.props.navigation.navigate('Conversation')
+                this.props.navigation.navigate('Conversation', {
+                    conversation_id: this.props.conversation.conversation_id,
+                    partner_id: this.props.conversation.user_id
+                })
             }}>
                 <View style={styles.box_message}>
                     <View style={styles.box_avatar_img}>
-                        <Image source={require('../../images/book_1.jpg')} style={styles.avatar_img} />
+                        <Image source={{ uri: server + this.props.conversation.avatar}} style={styles.avatar_img} />
                     </View>
                     <View style={styles.right_content} >
-                        <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1}>Nguyen Duy Tam</Text>
+                        <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1}>{this.props.conversation.name}</Text>
                         <View style={{ paddingTop: 5 }}>
-                            <Text style={{ color: '#6b6b6b' }} numberOfLines={1}>Tam: Gia bao nhieeu vaayj ban oid kdfjjshf jdh f dhfjks sdjhfk fahsfk</Text>
-                            <Text style={{ color: '#6b6b6b' }}>14:35  17 Th 02</Text>
+                            <Text style={{ color: '#6b6b6b' }} numberOfLines={1}>{ this.props.conversation.content}</Text>
+                            <Text style={{ color: '#6b6b6b' }}>{this.getTime(this.props.conversation.time)}</Text>
                         </View>
                     </View>
                 </View>
@@ -47,14 +62,73 @@ class Message extends React.Component {
 
 /*Màn hình */
 class MessageScreen extends React.Component {
+    constructor(props) {
+        super(props);
+        messageScreen = this;
+        this.state = {
+            is_loading_data: true,
+            conversations: [],
+            logged_in_id: 0,
+        }
+    }
+
+    getAllConversation = async () => {
+        try {
+            let userData = await AsyncStorage.getItem("user_id");
+            let user_id = JSON.parse(userData);
+            if(user_id != null) {
+                this.setState({
+                    logged_in_id: user_id,
+                })
+
+                fetch(server + '/message/all-conversation/' + user_id)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                    this.setState({
+                        is_loading_data: false,
+                        conversations: responseJson.conversations
+                    })
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    componentDidMount() {
+        this.getAllConversation();
+    }
+
     render() {
+        if(this.state.is_loading_data) {
+            return (
+                <View style={{ flex: 1 }}>
+                    <ActivityIndicator style={{ flex: 1 }} />
+                </View>
+            )
+        }
         return (
             <View style={styles.box_screen}>
                 <MessageHeader />
-                <ScrollView style={styles.box_conversations} >
-                    <Message 
-                        navigation={this.props.navigation}/>
-                </ScrollView>
+                {
+                    this.state.conversations.length == 0 ?
+                    <Text style={{color: '#6b6b6b', width: '100%', textAlign: 'center'}}>Bạn không có cuộc trò chuyện nào</Text> :
+                    <ScrollView style={styles.box_conversations} >
+                        {
+                            this.state.conversations.map( function(note, index) {
+                                return(
+                                    <Message 
+                                        navigation={messageScreen.props.navigation}
+                                        key={index}
+                                        conversation={note}/>
+                                );
+                            })
+                        }
+                    </ScrollView>
+                }
             </View>
             );
     }

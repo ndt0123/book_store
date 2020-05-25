@@ -36,20 +36,6 @@ export function getTimeLeft(time) {
     }
 };
 
-//Hàm kiểm tra xem đã đăng nhập chưa
-// export async function isLoggedIn() {
-//     var logged_in = false;
-//     fetch(server + '/auth/get_user')
-//         .then((response) => response.json())
-//         .then((responseJson) => {
-//             logged_in = responseJson.loggedIn;
-//         })
-//         .catch((error) => {
-//             console.error(error);
-//         });
-//     return logged_in;
-// }
-
 //Hàm lưu user_id vào AsyncStorage
 export async function storeUserId(user) {
     try {
@@ -73,3 +59,5 @@ export async function removeUserFromAsyncStorage() {
 //export const server = 'http://172.20.10.2:3000';
 //export const server = 'http://192.168.1.103:3000';
 export const server = 'http://192.168.100.38:3000';
+
+export const server_socket_io = "http://192.168.100.38:8810";

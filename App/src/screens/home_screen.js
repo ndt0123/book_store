@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, ImageBackground, Image, TextInput, TouchableWithoutFeedback, ActivityIndicator, Animated } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, ImageBackground, Image, TextInput, TouchableWithoutFeedback, ActivityIndicator, Animated, AsyncStorage } from 'react-native';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -29,6 +29,7 @@ class HomeHeader extends React.Component {
                             <IconFontAwesome name="bell" color="#eee" size={24} />
                         </View>
                     </TouchableWithoutFeedback>
+
                     <TouchableWithoutFeedback onPress={this.props.pressSearchingBtn} >
                         <View style={styles.menu_option_btn}>
                             <IconFontAwesome name="search" color="#eee" size={24} />
@@ -339,7 +340,7 @@ class HomeScreen extends React.Component {
         }
     }
 
-    componentDidMount() {
+    componentDidMount() {        
         this.getAllBookFromServer();
     }
 
@@ -384,7 +385,7 @@ class HomeScreen extends React.Component {
         return(
             <View style={styles.box_screen}>
                 <HomeHeader 
-                    navigation={this.props.navigation} 
+                    navigation={this.props.navigation}
                     pressSearchingBtn={() => {
                         this.setState({
                             display_searching_view: true
@@ -399,7 +400,10 @@ class HomeScreen extends React.Component {
                             this.setState({
                                 is_loading_new_data: true,
                             })
-                            this.getAllBookFromServer();
+                            setTimeout(() => {                                
+                                this.getAllBookFromServer();
+                            }, 400)
+                            
                         } 
                         // if(e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y >= e.nativeEvent.contentSize.height) {
                         //     alert("bottom");

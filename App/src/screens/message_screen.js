@@ -6,8 +6,9 @@
 
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, Image, TouchableWithoutFeedback, AsyncStorage, ActivityIndicator } from 'react-native';
+import io from "socket.io-client";
 
-import {getTimeLeft, server} from '../../config';
+import {server_socket_io, server} from '../../config';
 
 var messageScreen;
 
@@ -26,6 +27,18 @@ class MessageHeader extends React.Component {
 /*Một cuộc trò chuyện */
 class Message extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            new_message_content_weight: {
+                fontWeight: 'normal'
+            },
+            new_message_name_weight: {
+                fontWeight: '600'
+            }
+        }
+    }
+
     getTime = (time) => {
         var time_update = new Date(time);
         var month = time_update.getMonth();
@@ -35,23 +48,71 @@ class Message extends React.Component {
         return hours + ":" + minute + " " + day + " Th " + month;
     }
 
+    // Thay đổi background của cuộc trò chuyện khi có tin nhắn mới
+    newMessageChangeStyle = () => {
+        this.setState({
+            new_message_content_weight: {
+                fontWeight: '700'
+            },
+            new_message_name_weight: {
+                fontWeight: '800'
+            }
+        })
+    }
+
+    // Thay đổi background của cuộc trò chuyện khi người dùng click xem cuộc trò chuyện
+    seenNewMessageChangeStyle = () => {
+        this.setState({
+            new_message_content_weight: {
+                fontWeight: 'normal'
+            },
+            new_message_name_weight: {
+                fontWeight: '600'
+            }
+        })
+    }
+
+    componentDidMount() {
+        // Khai báo socket
+        this.socket = io(server_socket_io);
+
+        // Gửi id của cuộc trò chuyện để thêm phòng trên server
+        let conversation_id = this.props.conversation.conversation_id;
+        this.socket.emit("join room", conversation_id);  
+        // Nhận tin nhắn từ server gửi về
+        this.socket.on("send message to client", messageContent => {
+            this.newMessageChangeStyle();
+            // Lấy tin nhắn mới nhất của cuộc trò chuyện để hiển thị ra
+            this.props.get_latest_message(messageContent);
+        });
+
+        // Thêm sự kiện khi người dùng ròi khỏi màn hình trò chuyện
+        // Thì gọi hàm để dời khỏi phòng trên socket
+        // this._unsubscribe = this.props.navigation.addListener('blur', () => {
+        //     this.socket.emit("leave room", conversation_id); 
+        // });
+    }
+
     render() {
         return (
             <TouchableWithoutFeedback onPress={() => {
+                // Gọi hàm thay đổi giao diện của cuộc trò chuyện khi người dùng click xem tin nhắn
+                this.seenNewMessageChangeStyle();
+                
                 this.props.navigation.navigate('Conversation', {
                     conversation_id: this.props.conversation.conversation_id,
-                    partner_id: this.props.conversation.user_id
+                    partner_id: this.props.conversation.user_id,
                 })
             }}>
-                <View style={styles.box_message}>
+                <View style={[styles.box_message]}>
                     <View style={styles.box_avatar_img}>
                         <Image source={{ uri: server + this.props.conversation.avatar}} style={styles.avatar_img} />
                     </View>
                     <View style={styles.right_content} >
-                        <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1}>{this.props.conversation.name}</Text>
+                        <Text style={[{ fontSize: 15 }, this.state.new_message_name_weight]} numberOfLines={1}>{this.props.conversation.name}</Text>
                         <View style={{ paddingTop: 5 }}>
-                            <Text style={{ color: '#6b6b6b' }} numberOfLines={1}>{ this.props.conversation.content}</Text>
-                            <Text style={{ color: '#6b6b6b' }}>{this.getTime(this.props.conversation.time)}</Text>
+                            <Text numberOfLines={1} style={[this.state.new_message_content_weight]}>{ this.props.conversation.content}</Text>
+                            <Text style={{fontSize: 11}}>{this.getTime(this.props.conversation.time)}</Text>
                         </View>
                     </View>
                 </View>
@@ -84,6 +145,7 @@ class MessageScreen extends React.Component {
                 fetch(server + '/message/all-conversation/' + user_id)
                 .then((response) => response.json())
                 .then((responseJson) => {
+
                     this.setState({
                         is_loading_data: false,
                         conversations: responseJson.conversations
@@ -120,10 +182,28 @@ class MessageScreen extends React.Component {
                         {
                             this.state.conversations.map( function(note, index) {
                                 return(
-                                    <Message 
-                                        navigation={messageScreen.props.navigation}
+                                    <Message
                                         key={index}
-                                        conversation={note}/>
+                                        navigation={messageScreen.props.navigation}
+                                        conversation={note}
+                                        get_latest_message = {(messageContent) => {
+                                            // tạo một biến mới để lưu các cuộc trò chuyện cũ
+                                            let conversations = messageScreen.state.conversations;
+
+                                            // dùng vòng for chạy toàn bộ cuộc trò chuyện và thay đổi nội dung của cuộc trò chuyện trùng
+                                            for(var i=0; i<conversations.length; i++) {
+                                                if(conversations[i].conversation_id == messageContent.conversation_id) {
+                                                    conversations[i].content = messageContent.content;
+                                                    conversations[i].time = messageContent.time;
+                                                    i = conversations.length - 1;
+                                                }
+                                            }
+                                            // set biến state.conversations với giá trị mới
+                                            messageScreen.setState({
+                                                conversations: conversations
+                                            })
+                                        }}
+                                        />
                                 );
                             })
                         }
@@ -164,6 +244,9 @@ const styles = StyleSheet.create({
     box_message: {
         padding: 10,
         flexDirection: 'row',
+    },
+    box_avatar_img: {
+
     },
     avatar_img: {
         width: 60,

@@ -566,9 +566,19 @@ class AccountScreen extends React.Component {
                                     style: "cancel"
                                 },
                                 { text: "Có", onPress: () => {
+                                    // Set biến state.is_loading_info là true để hiển thị màn hình loading
+                                    this.setState({
+                                        is_loading_info: true
+                                    })
+                                    
                                     fetch(server + '/auth/logout')
                                     .then((response) => response.json())
                                     .then((responseJson) => {
+                                        // Set biến state.is_loading_info là false để biến mất màn hình loading 
+                                        this.setState({
+                                            is_loading_info: false
+                                        })
+
                                         if(responseJson.status == "success") {
                                             removeUserFromAsyncStorage();
                                             this.props.log_out();

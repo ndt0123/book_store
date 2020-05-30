@@ -20,7 +20,8 @@ class Header extends React.Component {
         return (
             <View style={styles.box_header}>
                 <TouchableWithoutFeedback onPress={() => {
-                    this.props.navigation.goBack();                  
+                    // Gọi hàm để dời phòng khi thoát khỏi màn hình
+                    this.props.navigation.goBack();     
                 }}>
                     <View style={{paddingRight: 5, alignContent: 'center', alignSelf: 'center'}}>
                         <IconEntypo name="chevron-left" color="#D96704" size={30} />
@@ -62,7 +63,11 @@ class Content extends React.Component {
 
     render() {
         return (
-            <ScrollView ref="scrollView">
+            <ScrollView 
+                ref="scrollView"
+                onContentSizeChange={()=>{        
+                    this.refs.scrollView.scrollResponderScrollToEnd({animated: true});
+                }}>
                 {
                     this.props.messages.map( function(note, index) {
                         if(note.sending_id == content.props.partner_id) {
@@ -201,8 +206,24 @@ class ConversationScreen extends React.Component {
         });
     }
 
-    componentDidMount() {
-        
+    // Gửi tin nhắn lên socket server
+    sendMessageToSocket = (messageContent) => {
+
+        // Gửi tin nhắn lên socket server
+        this.socket.emit("send message to server", messageContent);
+
+        // Thay đổi biến state lưu tin nhắn với nội dung tin mới
+        this.setState({
+            messages: [...conversationScreen.state.messages, messageContent]
+        })
+
+        // Gán lại giá trị của inputFeild = ""
+        this.setState({
+            chatMessage: ""
+        })
+    }
+
+    componentDidMount() {        
         // Khai báo socket
         this.socket = io(server_socket_io);
 
@@ -213,7 +234,9 @@ class ConversationScreen extends React.Component {
             let user_id_1 = this.props.route.params.partner_id;
             let user_id_2 = this.props.route.params.logged_in_id;
 
-            // Kiểm tra xem có cuộc trò chuyện nào giữa hai người không
+            // Nếu trước đó hai người chưa từng trò chuyện thì lưu các biến state.partner_id, partner_avatar,partner_name, logged_in_id
+            // sử dụng các tham số truyền từ Screen trước đó là book_detail_screen
+            // Nếu hai người đã từng trò chuyện thì lấy nội dung cuộc trò chuyện và thông tin partner qua 2 hàm getPartnerInfo() và getAllMessages()
             fetch(server + '/message/conversation?user_id_1=' + user_id_1 + '&user_id_2=' + user_id_2)
             .then((response) => response.json())
             .then((responseJson) => {
@@ -229,20 +252,32 @@ class ConversationScreen extends React.Component {
                     let partner_id = this.props.route.params.partner_id;
                     this.getPartnerInfo(partner_id);
                     this.getAllMessages(conversation_id);
+
+                    // Set cho biến state.conversation_id
+                    this.setState({
+                        conversation_id: conversation_id
+                    })
+
+                    // Gửi id của cuộc trò chuyện để thêm phòng trên server
+                    this.socket.emit("join room", conversation_id);  
                 }
             })
             .catch((error) => {
                 console.error(error);
-            });
-            
+            });            
         } else {
             var {conversation_id} = this.props.route.params;
             var {partner_id} = this.props.route.params;
             this.getPartnerInfo(partner_id);
             this.getAllMessages(conversation_id);
 
+            // Set cho biến state.conversation_id
+            this.setState({
+                conversation_id: conversation_id
+            })
+
             // Gửi id của cuộc trò chuyện để thêm phòng trên server
-            this.socket.emit("new room", this.props.route.params.conversation_id);            
+            this.socket.emit("join room", this.props.route.params.conversation_id);            
         }
 
         // Nhận tin nhắn từ server gửi về
@@ -250,7 +285,6 @@ class ConversationScreen extends React.Component {
             conversationScreen.setState({
                 messages: [...conversationScreen.state.messages, messageContent]
             })
-            console.log(messageContent)
         });
 
         // Sự kiện hiển thị keyboard
@@ -263,42 +297,98 @@ class ConversationScreen extends React.Component {
         Keyboard.addListener('keyboardWillHide', function(e) {
             conversationScreen.inputFeildDown();
         });
+
+        // Thêm sự kiện khi người dùng ròi khỏi màn hình trò chuyện
+        // Thì gọi hàm để dời khỏi phòng trên socket
+        this._unsubscribe = this.props.navigation.addListener('blur', () => {
+            this.leave_room();
+        });
     }
 
-    // Gửi tin nhắn lên socket
-    sendMessage = async () => {
+    // Sự kiện click vào nút gửi tin
+    pressOnSendingBtn = async () => {
         try {
             let userData = await AsyncStorage.getItem("user_id");
             let data = JSON.parse(userData);
 
             let messageContent; // Biến lưu nội dung tin nhắn
 
-            //
+            // Nếu có id cuộc trò chuyện là một params truyền từ Screen trước thì gủi tin nhắn lên socket
+            // Nếu không có thì kiểm tra xem trước đó hai người đã nói chuyện với nhau chưa
             if(this.props.route.params.conversation_id == undefined) {
+                let user_id_1 = this.props.route.params.partner_id;
+                let user_id_2 = this.props.route.params.logged_in_id;
+
+                // Kiểm tra xem trước đó hai người đã từng trò chuyện chưa
+                // Nếu chưa thì 
+                // Nếu rồi thì set biến messageContent
+                fetch(server + '/message/conversation?user_id_1=' + user_id_1 + '&user_id_2=' + user_id_2)
+                .then((response) => response.json())
+                .then((responseJson) => {
+                    if(responseJson.conversation_id == "undefined") {
+
+                        // Thực hiện thêm mới một conversation vào csdl
+                        fetch(server + '/message/new-conversation?user_id_1=' + user_id_1 + '&user_id_2=' + user_id_2)
+                        .then((response) => response.json())
+                        .then((responseJson) => {
+                            // Nếu kết quả trả về có conversation_id thì gửi tin nhắn lên socket
+                            if(responseJson.conversation_id != undefined) {
+                                messageContent = {
+                                    content: this.state.chatMessage,
+                                    sending_id: data,
+                                    type_of_message: "text",
+                                    time: new Date(),
+                                    conversation_id: responseJson.conversation_id,
+                                }
+                                // Set cho biến state.conversation_id
+                                this.setState({
+                                    conversation_id: responseJson.conversation_id
+                                })
+                                // Gửi id của cuộc trò chuyện để thêm phòng trên server
+                                this.socket.emit("join room", responseJson.conversation_id); 
+                                // Gửi tin nhắn lên socket server
+                                this.sendMessageToSocket(messageContent);  
+
+                                // Thêm sự kiện khi người dùng ròi khỏi màn hình trò chuyện
+                                // Thì gọi hàm để dời khỏi phòng trên socket
+                                this.props.navigation.addListener('blur', () => {
+                                    this.socket.emit("leave room", responseJson.conversation_id);  
+                                });
+                            }
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        })
+                    } else {
+                        messageContent = {
+                            content: this.state.chatMessage,
+                            sending_id: data,
+                            type_of_message: "text",
+                            time: new Date(),
+                            conversation_id: responseJson.conversation_id,
+                        }
+                        // Gửi tin nhắn lên socket server
+                        this.sendMessageToSocket(messageContent);
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                });   
 
             } else {
                 messageContent = {
                     content: this.state.chatMessage,
                     sending_id: data,
-                    receiving_id: this.state.partner_id,
                     type_of_message: "text",
                     time: new Date(),
                     conversation_id: this.props.route.params.conversation_id,
                 }
+                // Gửi tin nhắn lên socket server
+                this.sendMessageToSocket(messageContent);
             }
-
-            // Gửi tin nhắn lên socket server
-            this.socket.emit("send message to server", messageContent);
-            this.setState({
-                messages: [...conversationScreen.state.messages, messageContent]
-            })
-            this.setState({
-                chatMessage: ""
-            })
         } catch (error) {
             console.log(error);
-        }
-        
+        }        
     }
 
     // Lấy nội dung tin nhắn từ commponent ImputFeild
@@ -326,6 +416,14 @@ class ConversationScreen extends React.Component {
         }).start()
     }
 
+    // Dời khỏi phòng trò chuyện 
+    leave_room = () => {
+        if(this.state.conversation_id != undefined) {
+            // Gửi id của cuộc trò chuyện để dời khỏi phòng
+            this.socket.emit("leave room", this.state.conversation_id);  
+        }
+    }
+
     render() {
         return (
             <Animated.View style={{ flex: 1, justifyContent: 'space-between', marginBottom: this.state.fadeAnim }}>
@@ -338,7 +436,7 @@ class ConversationScreen extends React.Component {
                     partner_id={this.state.partner_id}/>
                 <InputFeild 
                     chatMessage={this.state.chatMessage}
-                    sendMessage={this.sendMessage}
+                    sendMessage={this.pressOnSendingBtn}
                     getMessageContent={this.getMessageContent}/>
             </Animated.View>
         );

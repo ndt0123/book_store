@@ -110,7 +110,7 @@ class BookInfo extends React.Component {
 
     // Hàm xử lý để thêm người dùng theo dõi người dùng
     followingUser = () => {
-        fetch(server + '/book-details/' + this.props.details[0].book_id + '/following?user_id=' + this.props.logged_in_id)
+        fetch(server + '/book-details/' + this.props.details[0].user_id + '/following?user_id=' + this.props.logged_in_id)
         .then((response) => response.json())
         .then((responseJson) => {
             if(responseJson.status == 'error') {

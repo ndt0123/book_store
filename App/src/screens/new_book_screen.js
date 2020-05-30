@@ -499,7 +499,7 @@ class NewBookScreen extends React.Component {
                 return;
             }
         
-            let pickerResult = await ImagePicker.launchImageLibraryAsync();
+            let pickerResult = await ImagePicker.launchImageLibraryAsync({quality: 0.1});
             if (pickerResult.cancelled === true) {
                 return;
             }

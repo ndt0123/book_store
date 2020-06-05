@@ -7,12 +7,12 @@ var connect_db = require('../modules/connect_db.js');
 router.get('/all-conversation/:user_id', function(req, res, next) {
     var user_id = req.params['user_id'];
     
-    var query_conversation_user_1 = "SELECT CS.conversation_id, U.name, U.avatar, U.user_id, M.content, M.time FROM conversations CS INNER JOIN users U INNER JOIN";
-    query_conversation_user_1 += " (SELECT message.conversation_id, message.content, message.time FROM message INNER JOIN (SELECT MAX(time) as max FROM message GROUP BY conversation_id) ";
+    var query_conversation_user_1 = "SELECT CS.conversation_id, U.name, U.avatar, U.user_id, M.content, M.time, M.sending_id FROM conversations CS INNER JOIN users U INNER JOIN";
+    query_conversation_user_1 += " (SELECT message.conversation_id, message.content, message.time, message.sending_id FROM message INNER JOIN (SELECT MAX(time) as max FROM message GROUP BY conversation_id) ";
     query_conversation_user_1 += "MT ON message.time=MT.max) M ON CS.user_id_2=U.user_id AND CS.conversation_id=M.conversation_id WHERE CS.user_id_1=" + user_id;
 
-    var query_conversation_user_2 = "SELECT CS.conversation_id, U.name, U.avatar, U.user_id, M.content, M.time FROM conversations CS INNER JOIN users U INNER JOIN";
-    query_conversation_user_2 += " (SELECT message.conversation_id, message.content, message.time FROM message INNER JOIN (SELECT MAX(time) as max FROM message GROUP BY conversation_id) "; 
+    var query_conversation_user_2 = "SELECT CS.conversation_id, U.name, U.avatar, U.user_id, M.content, M.time, M.sending_id FROM conversations CS INNER JOIN users U INNER JOIN";
+    query_conversation_user_2 += " (SELECT message.conversation_id, message.content, message.time, message.sending_id FROM message INNER JOIN (SELECT MAX(time) as max FROM message GROUP BY conversation_id) "; 
     query_conversation_user_2 += "MT ON message.time=MT.max) M ON CS.user_id_1=U.user_id AND CS.conversation_id=M.conversation_id WHERE CS.user_id_2=" + user_id;
     
     connect_db.con.query(query_conversation_user_1, function(err1, result1) {

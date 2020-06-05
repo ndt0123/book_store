@@ -7,7 +7,7 @@ import { StyleSheet, View, Text, Image, ScrollView, TouchableWithoutFeedback, As
 
 import IconEntypo from 'react-native-vector-icons/Entypo';
 
-import {getTimeLeft, server, removeUserFromAsyncStorage} from '../../config';
+import {getTimeLeft, server, removeUserFromAsyncStorage, removeConversationsFromAsyncStorage} from '../../config';
 
 var book_selling;
 var book_stop_selling;
@@ -581,6 +581,7 @@ class AccountScreen extends React.Component {
 
                                         if(responseJson.status == "success") {
                                             removeUserFromAsyncStorage();
+                                            removeConversationsFromAsyncStorage();
                                             this.props.log_out();
                                         }
                                     })

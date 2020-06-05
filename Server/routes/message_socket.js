@@ -10,8 +10,8 @@ const io = require('socket.io').listen(server);
 io.on("connection", socket => {
 
     socket.on("join room", function(room) {
-        console.log("joined in room: " + room);
         socket.join(room);
+        console.log("joined in room: " + room);
     })
 
     socket.on("leave room", function(room) {

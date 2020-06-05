@@ -55,6 +55,56 @@ export async function removeUserFromAsyncStorage() {
     }
 }
 
+// Hàm lưu conversations vào AsyncStorage
+export async function storeConversation(conversations) {
+    try {
+        await AsyncStorage.setItem("conversations", JSON.stringify(conversations));
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// Hàm thay đổi giá trị conversations trong AsyncStorage
+export async function setConversationInStorage(messageContent) {
+    try {
+        let conversationStorage = await AsyncStorage.getItem("conversations");
+        let conversations_in_storage = JSON.parse(conversationStorage);
+
+        if(conversations_in_storage != null) {
+            var convresation_exist = false;
+            for(var i=0; i<conversations_in_storage.length; i++) {
+                if(messageContent.conversation_id == conversations_in_storage[i].conversation_id) {
+                    conversations_in_storage[i].time = messageContent.time;
+                    conversations_in_storage[i].sending_id = messageContent.sending_id;
+                    convresation_exist = true;
+                }
+            }
+
+            if(convresation_exist == false) {
+                conversations_in_storage.push({
+                    conversation_id: messageContent.conversation_id,
+                    sending_id: messageContent.sending_id,
+                    time: messageContent.time
+                })
+            }
+    
+            await AsyncStorage.setItem("conversations", JSON.stringify(conversations_in_storage));
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// Hàm remove conversations từ AsyncStorage
+export async function removeConversationsFromAsyncStorage() {
+    try {
+        await AsyncStorage.removeItem("conversations");
+    }
+    catch(exception) {
+        console.log(error)
+    }
+}
+
 //export const server = 'http://192.168.43.3:3000';
 //export const server = 'http://172.20.10.2:3000';
 //export const server = 'http://192.168.1.103:3000';

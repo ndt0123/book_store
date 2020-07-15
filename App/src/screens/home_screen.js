@@ -25,8 +25,19 @@ class HomeHeader extends React.Component {
                             this.props.navigation.navigate('Notification');
                         }}
                     >
-                        <View style={styles.menu_option_btn}>
+                        <View style={[styles.menu_option_btn, {flexDirection: 'row', paddingRight: 10}]}>
                             <IconFontAwesome name="bell" color="#eee" size={24} />
+                            <View style={{
+                                backgroundColor: 'red', 
+                                borderRadius: 20, 
+                                paddingLeft: 5, 
+                                paddingRight: 5, 
+                                marginBottom: 10, 
+                                position: 'absolute', 
+                                right: 0,
+                                top: 0}}>
+                                <Text style={{color: 'white'}}>2</Text>
+                            </View>
                         </View>
                     </TouchableWithoutFeedback>
 

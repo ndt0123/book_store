@@ -14,6 +14,7 @@ var newBook = require('./routes/new_book');
 var accountInfo = require('./routes/account_info');
 var message = require('./routes/message');
 var messageSocket = require('./routes/message_socket');
+var notification = require('./routes/notification');
 
 var app = express();
 
@@ -46,6 +47,7 @@ app.use('/new-book', newBook);
 app.use('/account-info', accountInfo);
 app.use('/message', message);
 app.use('/message-socket', messageSocket);
+app.use('/notification', notification);
 
 
 // catch 404 and forward to error handler
